@@ -1,0 +1,23 @@
+services:
+  # Ejercicio 1: starter/EDA.py
+  python.app:
+    build: .
+    container_name: semana08
+    volumes:
+      - ./figuras:/app/figuras
+
+  # Ejercicio 2: plantilla-ejercicio2/explorar_relaciones.py
+  ejercicio2:
+    build: .
+    volumes:
+      - ..:/lab
+    working_dir: /lab/plantilla-ejercicio2
+    command: python3 explorar_relaciones.py
+
+  # Ejercicio 3: plantilla-eda/explorar_proyecto.py
+  ejercicio3:
+    build: .
+    volumes:
+      - ..:/lab
+    working_dir: /lab/plantilla-eda
+    command: python3 explorar_proyecto.py

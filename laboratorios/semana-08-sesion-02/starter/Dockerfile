@@ -1,11 +1,13 @@
 FROM python:3.12-slim
 
+ENV MPLBACKEND=Agg
+
 WORKDIR /app
 
 COPY requirements.txt .
 
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "python3","./starter/EDA.py" ]
+CMD [ "python3", "EDA.py" ]
