@@ -45,19 +45,19 @@ python3 ejercicio1_explorar.py
 
 **Respuesta 1 (TODO 1), antes de ver la solución:** en `describe()`, ¿qué dos valores de la tabla te harían sospechar de un error sin necesidad de graficar nada?
 
-_(tu respuesta)_
+El máximo de `tarifa` (999.99), que no es una tarifa plausible para un taxi y está muy lejos del percentil 75 (32.55), y el mínimo de `duracion_min` (-74), porque una duración no puede ser negativa. El mínimo de `distancia_km` en 0 también es sospechoso.
 
 **Respuesta 2 (TODO 2):** abre `figuras/hist_tarifa.png` después del TODO 2. ¿Por qué casi todo el histograma queda comprimido a la izquierda?
 
-_(tu respuesta)_
+Porque los 15 viajes con tarifa de 999.99 estiran el eje x hasta 1000. Las otras 2985 tarifas están por debajo de 78, así que ocupan menos de una décima del ancho del gráfico y quedan aplastadas a la izquierda.
 
 **Respuesta 3 (TODO 3 y 4):** la regla del IQR marca más de 300 viajes con tarifa atípica. ¿Esperas que todos sean errores? ¿Cómo lo averiguarías?
 
-_(tu respuesta)_
+No. El IQR solo dice que un valor está lejos del centro, no que esté mal. Lo averiguo mirando qué tarifas concretas son atípicas (`value_counts`) y de qué viajes son: si un valor exacto se repite cientos de veces y siempre en las mismas zonas, es una regla de negocio y no un error de captura.
 
 **Lo que confirmó la salida, TODO por TODO:**
 
-_(anota el límite superior, cuántos atípicos marcó y cómo se reparten)_
+Q1 = 13.99, Q3 = 32.55, IQR = 18.56, límite superior = 60.40. El IQR marcó 334 viajes: 302 con tarifa exacta de 70.00 (tarifa fija del aeropuerto), 15 con 999.99 (error de captura) y 17 viajes largos con tarifas entre 61.07 y 77.81. Aparte, hay 10 duraciones negativas que el IQR de la tarifa no detecta.
 
 ## Durante el ConcepTest
 
@@ -83,15 +83,15 @@ python3 ejercicio2_relaciones.py
 
 **Hallazgo 1: qué muestra el gráfico de distancia contra tarifa, además de la tendencia general.**
 
-_(tu hallazgo, con el número que lo confirma)_
+Además de la tendencia lineal (más distancia, más tarifa) hay dos grupos que no la siguen. Una línea horizontal en 70: 300 viajes que cuestan exactamente 70 sin importar la distancia, y todos van entre JFK Airport y una zona de Manhattan (tarifa fija). Y una línea vertical en distancia 0: 25 viajes con tarifas reales, en los que la distancia no se registró.
 
 **Hallazgo 2: qué pasa con la propina según el método de pago, y si crees que describe a los pasajeros o al sistema que registra los datos.**
 
-_(tu hallazgo, con el número que lo confirma)_
+En efectivo la propina es 0 en los 888 viajes (promedio 0.00); con tarjeta el promedio es 4.73 y ningún viaje tiene propina 0. Que sea exactamente 100 % contra 0 % describe al sistema, no a los pasajeros: la propina en efectivo no se registra. Además hay 60 viajes sin método de pago.
 
 **Hallazgo 3: la duración tiene una correlación con la tarifa tan alta como la distancia. Si el modelo tiene que estimar la tarifa en el momento en que alguien pide el taxi, ¿puede usar la duración?**
 
-_(tu respuesta)_
+No. La duración solo se conoce cuando el viaje termina, así que no existe en el momento de pedir el taxi. Su correlación con la tarifa (0.956) es casi la de la distancia (0.960) porque las dos crecen juntas, pero usarla sería fuga de información: el modelo se vería muy bien al evaluarlo y no podría usarse en producción. Lo que sí está disponible es la distancia estimada y la hora.
 
 ## Ejercicio 3: explora el dataset de tu proyecto
 

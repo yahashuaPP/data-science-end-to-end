@@ -22,12 +22,13 @@ print("Valores faltantes por columna:")
 print(viajes.isna().sum())
 # TODO 1: imprime la estadistica descriptiva de las columnas numericas,
 # redondeada a 2 decimales.
-print(viajes.head())
+print(viajes.describe().round(2))
 
 print()
 print("Paso 2: distribucion de la tarifa")
 plt.figure()
 # TODO 2: histograma de la tarifa, con 50 barras.
+plt.hist(viajes["tarifa"], bins=50)
 plt.title("Tarifa de cada viaje")
 plt.xlabel("tarifa")
 plt.ylabel("cantidad de viajes")
@@ -45,7 +46,11 @@ print()
 print("Paso 3: atipicos con la regla del IQR")
 # TODO 3: calcula Q1, Q3, el IQR y el limite superior (Q3 + 1.5 * IQR)
 # de la tarifa.
-limite_superior = viajes["tarifa"].max()
+q1 = viajes["tarifa"].quantile(0.25)
+q3 = viajes["tarifa"].quantile(0.75)
+iqr = q3 - q1
+limite_superior = q3 + 1.5 * iqr
+print(f"Q1: {q1:.2f}  Q3: {q3:.2f}  IQR: {iqr:.2f}")
 atipicos = viajes[viajes["tarifa"] > limite_superior]
 print(f"Limite superior: {limite_superior:.2f}")
 print(f"Viajes sobre el limite superior: {len(atipicos)}")
@@ -55,8 +60,8 @@ print()
 print("Paso 4: atipico no es lo mismo que error")
 # TODO 4: de los atipicos, cuenta los que tienen la tarifa de error de
 # captura (999.99) y los que tienen una tarifa exacta de 70.00.
-errores_de_captura = None
-tarifa_exacta_70 = None
+errores_de_captura = (atipicos["tarifa"] == 999.99).sum()
+tarifa_exacta_70 = (atipicos["tarifa"] == 70.00).sum()
 print(f"Error de captura (999.99): {errores_de_captura}")
 print(f"Tarifa exacta de 70.00: {tarifa_exacta_70}")
 print(f"Duraciones negativas: {(viajes['duracion_min'] < 0).sum()}")

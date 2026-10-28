@@ -45,19 +45,19 @@ python3 ejercicio1_features_tiempo.py
 
 **Respuesta 1 (TODO 4), antes de ver la solución:** si dejas la hora como un número del 0 al 23, ¿qué tan lejos queda la hora 23 de la hora 0 para un modelo que mide distancias entre números? ¿Y en el reloj?
 
-_(tu respuesta)_
+Como número, 23 y 0 quedan a 23 unidades, la mayor distancia posible, aunque en el reloj están a una hora. Con seno y coseno las dos parejas (23 y 0, 11 y 12) quedan a la misma distancia, 0.26, que es lo que pasa en el reloj.
 
 **Respuesta 2 (TODO 3):** sin el TODO 3, el Paso 4 muestra un solo grupo. Con la hora pico construida, ¿esperas que la tarifa por kilómetro sea más alta o más baja en hora pico? ¿Por qué, si la tarifa depende de la distancia y de la duración?
 
-_(tu respuesta)_
+Más alta. La tarifa depende de la distancia y también del tiempo, y en hora pico el tráfico alarga el viaje para la misma distancia, así que cada kilómetro cuesta más. La salida lo confirma: mediana de 3.52 por km en hora pico contra 3.22 fuera de ella.
 
 **Respuesta 3:** la duración del viaje no existe al pedir el taxi, pero la hora sí. ¿Qué parte de lo que la duración le diría al modelo puede traer `es_hora_pico`?
 
-_(tu respuesta)_
+La parte de la duración que viene del tráfico. `es_hora_pico` le dice al modelo que ese viaje probablemente será más lento que otro de la misma distancia, que es justo lo que la duración aportaba además de la distancia, y se conoce antes de salir.
 
 **Lo que confirmó la salida, TODO por TODO:**
 
-_(anota la tarifa por kilómetro en cada grupo y las dos distancias del Paso 5)_
+TODO 1 y 2: hora, día de la semana y fin de semana salen de `fecha_hora_inicio`. TODO 3: tarifa por km mediana de 3.22 fuera de hora pico y 3.52 en hora pico. TODO 4: distancia entre 23 y 0 como número 23, como ciclo 0.26; entre 11 y 12 como número 1, como ciclo 0.26.
 
 ## Durante el ConcepTest
 
@@ -83,15 +83,15 @@ python3 ejercicio2_features_zona.py
 
 **Respuesta 1:** ¿cuántos viajes tienen `es_tarifa_fija` en 1, y qué tarifa mínima y máxima tienen? ¿Qué te dice eso sobre lo que un modelo lineal puede aprender con esta columna?
 
-_(tu respuesta)_
+300 viajes, todos con tarifa mínima y máxima de 70.00. La tarifa de esos viajes no depende de la distancia, pero un modelo lineal solo puede usar la columna para sumar un valor fijo a `a · distancia`: no puede anular el efecto de la distancia en esos viajes. Haría falta una interacción (`es_tarifa_fija × distancia_km`) o un modelo de árboles.
 
 **Respuesta 2:** ¿cuántas columnas crea one-hot para la zona de origen, y cuántas la codificación ordinal? Si el modelo es una regresión lineal, ¿cuál de las dos usarías, y por qué la otra le da información falsa?
 
-_(tu respuesta)_
+One-hot crea 8 columnas, una por zona; la ordinal crea 1. Con regresión lineal usaría one-hot. La ordinal asigna números por orden alfabético (Brooklyn 0, Harlem 1, JFK Airport 2, …, Upper West Side 7), y la regresión los trata como cantidades: supone que las zonas tienen un orden y que de Brooklyn a Harlem hay la misma diferencia que de Queens a Upper East Side, lo que es falso.
 
 **Respuesta 3:** ¿qué columnas del dataset no existen al pedir el taxi? ¿Qué pasaría con el modelo si las usaras para entrenar?
 
-_(tu respuesta)_
+`duracion_min` y `propina`, que solo se conocen al terminar el viaje, y `metodo_pago`, que se registra al pagar. `tarifa` es el objetivo. Si las usara para entrenar, el modelo tendría fuga de información: se vería excelente en la evaluación y no podría usarse al pedir el taxi, porque esos datos todavía no existen.
 
 ## Ejercicio 3: dos features para tu proyecto
 

@@ -47,19 +47,19 @@ python3 ejercicio1_fuga.py
 
 **Respuesta 1, antes de ver la solución:** en la versión del compañero, ¿en qué línea entra el conjunto de prueba al entrenamiento? ¿Qué número de la salida lo delata?
 
-_(tu respuesta)_
+En `X_preparado = escalador.fit_transform(imputador.fit_transform(X))`: el imputador y el escalador aprenden con las 2975 filas antes de dividir, así que la mediana, la media y la desviación ya incluyen el conjunto de prueba. Lo delata la salida: `Filas que vio el escalador: 2975`, cuando el entrenamiento debería tener 2380.
 
 **Respuesta 2 (TODO 1 y 3):** sin resolver, la versión correcta dice que tiene 2975 filas de prueba. ¿Qué está midiendo ese error, si prueba y entrenamiento son las mismas filas?
 
-_(tu respuesta)_
+Mide el error de entrenamiento, no el de prueba: el modelo se evalúa con las mismas filas con las que aprendió. Ese número (2.5590) no dice nada de cómo le irá con viajes nuevos.
 
 **Respuesta 3:** ¿cuánto esperas que cambie el error absoluto medio en prueba al corregir la fuga? Si casi no cambia, ¿significa que no había fuga?
 
-_(tu respuesta)_
+Esperaba un cambio pequeño, y así fue: 2.5375 con fuga contra 2.5373 corregido. Que casi no cambie no significa que no había fuga: la prueba igual entró al entrenamiento (2975 filas contra 2380). Aquí el efecto es mínimo porque la media y la mediana casi no cambian con 595 filas más (8.5034 contra 8.5576), pero con otro dataset o con otra transformación la diferencia puede ser grande.
 
 **Lo que confirmó la salida, TODO por TODO:**
 
-_(anota las filas que vio cada escalador y los dos errores)_
+Versión del compañero: el escalador vio 2975 filas, media de distancia 8.5034, error en prueba 2.5375. Versión correcta: el escalador vio 2380 filas (solo entrenamiento), media 8.5576, 595 filas de prueba, error en prueba 2.5373.
 
 ## Durante el ConcepTest
 
@@ -85,15 +85,15 @@ python3 ejercicio2_pipeline.py
 
 **Respuesta 1:** ¿cuántas columnas quedan después de preparar los datos? Explica de dónde sale ese número a partir de los tres grupos de columnas.
 
-_(tu respuesta)_
+25 columnas. Las 2 numéricas siguen siendo 2 (imputadas y escaladas); las 5 ya listas pasan sin cambios; y las 3 categóricas se convierten en 18 columnas one-hot: 8 de `zona_origen`, 8 de `zona_destino` y 2 de `metodo_pago`. 2 + 5 + 18 = 25.
 
 **Respuesta 2:** ¿las medianas que aprendió el imputador coinciden con las de entrenamiento o con las de todo el dataset? ¿Qué demuestra eso?
 
-_(tu respuesta)_
+Coinciden con las de entrenamiento: distancia 6.94 y pasajeros 1.0, mientras que la mediana de distancia de todo el dataset es 6.93. Demuestra que el imputador aprendió solo con entrenamiento: el conjunto de prueba no influyó en la preparación.
 
 **Respuesta 3:** ¿qué le pasa al viaje desde el Bronx? ¿Qué habría pasado con `pd.get_dummies` aplicado por separado a ese viaje?
 
-_(tu respuesta)_
+Como el entrenamiento nunca vio el Bronx, `OneHotEncoder(handle_unknown="ignore")` deja las 8 columnas de `zona_origen` en 0, y el viaje se predice con el resto de las columnas. Con `pd.get_dummies` aplicado solo a ese viaje se crearía una columna `zona_origen_Bronx` que el modelo no conoce y faltarían las otras 8, así que las columnas no coincidirían con las del entrenamiento y el modelo fallaría o leería las columnas desalineadas.
 
 ## Ejercicio 3: el pipeline de tu proyecto
 

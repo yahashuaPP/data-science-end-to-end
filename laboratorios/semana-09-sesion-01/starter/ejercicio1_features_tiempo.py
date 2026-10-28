@@ -16,22 +16,22 @@ inicio = pd.to_datetime(viajes["fecha_hora_inicio"])
 
 print("Paso 1: partes de la fecha")
 # TODO 1: la hora (0 a 23) y el dia de la semana (0 es lunes) de inicio.
-viajes["hora"] = 0
-viajes["dia_semana"] = 0
+viajes["hora"] = inicio.dt.hour
+viajes["dia_semana"] = inicio.dt.dayofweek
 # TODO 2: es_fin_de_semana, 1 los sabados y domingos, 0 el resto.
-viajes["es_fin_de_semana"] = 0
+viajes["es_fin_de_semana"] = (viajes["dia_semana"] >= 5).astype(int)
 
 print("Paso 2: hora pico")
 horas_pico = [7, 8, 9, 16, 17, 18, 19]
 # TODO 3: es_hora_pico, 1 si la hora esta en horas_pico y no es fin de
 # semana, 0 el resto.
-viajes["es_hora_pico"] = 0
+viajes["es_hora_pico"] = (viajes["hora"].isin(horas_pico) & (viajes["es_fin_de_semana"] == 0)).astype(int)
 
 print("Paso 3: la hora como ciclo")
 # TODO 4: hora_sin y hora_cos, la hora como un punto en un reloj de 24
 # horas.
-viajes["hora_sin"] = 0.0
-viajes["hora_cos"] = 0.0
+viajes["hora_sin"] = np.sin(2 * np.pi * viajes["hora"] / 24)
+viajes["hora_cos"] = np.cos(2 * np.pi * viajes["hora"] / 24)
 
 columnas = ["fecha_hora_inicio", "hora", "dia_semana", "es_fin_de_semana", "es_hora_pico", "hora_sin", "hora_cos"]
 print(viajes[columnas].head())

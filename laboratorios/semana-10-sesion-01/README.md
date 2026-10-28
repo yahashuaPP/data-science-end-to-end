@@ -39,19 +39,19 @@ python3 ejercicio1_linea_base_y_ensamblaje.py
 
 **Respuesta 1 (TODO 1):** la línea base predice siempre la mediana de la tarifa. ¿Cuánto esperas que se equivoque en promedio? ¿Para qué sirve un modelo que no usa ninguna columna?
 
-_(tu respuesta)_
+Esperaba un error grande, del orden de la dispersión de la tarifa: la línea base se equivoca 12.53 en promedio en prueba. Sirve como piso de comparación: cualquier modelo que use columnas tiene que equivocarse menos que esto, o no está aprendiendo nada útil.
 
 **Respuesta 2 (TODO 2):** un árbol sin límite puede seguir partiendo los datos hasta dejar un viaje por hoja. ¿Qué error esperas en entrenamiento, y qué esperas en prueba?
 
-_(tu respuesta)_
+Error casi 0 en entrenamiento, porque memoriza cada viaje (0.0029), y bastante peor en prueba (1.70). Es sobreajuste: aprende también el ruido.
 
 **Respuesta 3 (TODO 3 y 4):** ¿qué esperas que pase con la brecha entre entrenamiento y prueba al limitar la profundidad? ¿Y con 200 árboles promediados?
 
-_(tu respuesta)_
+Al limitar la profundidad, la brecha baja de 1.70 a 0.26 y el error en prueba mejora a 1.27: pierde un poco en entrenamiento y gana en generalización. El bosque de 200 árboles baja el error en prueba respecto al árbol sin límite (1.30 contra 1.70), porque promediar reduce la varianza, pero su brecha sigue siendo 0.83: cada árbol del bosque crece sin límite. En estos datos no supera al árbol de profundidad 8.
 
 **Lo que confirmó la tabla, TODO por TODO:**
 
-_(anota el error en entrenamiento, en prueba y la brecha de cada modelo)_
+Línea base: entrenamiento 13.20, prueba 12.53, brecha -0.67. Árbol sin límite: 0.0029, 1.70, brecha 1.70. Árbol con max_depth=8: 1.01, 1.27, brecha 0.26. Bosque de 200 árboles: 0.47, 1.30, brecha 0.83.
 
 ## Durante el ConcepTest
 
@@ -77,19 +77,19 @@ python3 ejercicio2_regularizacion.py
 
 **Respuesta 1:** ¿cuántas columnas recibe la regresión con interacciones de grado 3, y cuántas filas de entrenamiento hay? ¿Qué tiene que ver esa comparación con el error en prueba que obtuviste?
 
-_(tu respuesta)_
+3275 columnas contra 2380 filas de entrenamiento: hay más coeficientes que datos. La regresión puede ajustar el entrenamiento casi exacto (error 0.91), pero los coeficientes quedan enormes e inestables, y en prueba el error explota (del orden de 2.4 × 10⁹).
 
 **Respuesta 2:** ¿qué cambió entre `lineal grado 3` y `ridge grado 3` en el error de entrenamiento, y qué cambió en el de prueba? ¿Por qué Ridge empeora un poco en entrenamiento?
 
-_(tu respuesta)_
+En entrenamiento Ridge empeora un poco (0.91 a 1.03); en prueba pasa de unos 2.4 × 10⁹ a 1.32. Ridge penaliza los coeficientes grandes, así que ya no puede ajustar cada detalle del entrenamiento, que era en buena parte ruido. Eso cuesta un poco en entrenamiento y es justo lo que lo hace generalizar.
 
 **Respuesta 3:** ¿qué modelo quedó mejor en prueba? ¿Cuánto mejor que la línea base?
 
-_(tu respuesta)_
+Gradient boosting, con 1.28 de error en prueba. La línea base se equivoca 12.53: el mejor modelo se equivoca unos 11.26 dólares menos por viaje, alrededor de un 90 % menos.
 
 **Si terminas antes:** la brecha de la línea base es negativa (se equivoca menos en prueba que en entrenamiento). ¿Cómo puede pasar eso con un modelo que no aprende nada?
 
-_(tu respuesta)_
+La línea base predice siempre la mediana del entrenamiento y no aprende nada, así que su error depende solo de qué tan lejos de esa mediana quedan las tarifas de cada conjunto. En esta división, por azar, la prueba quedó con menos viajes de tarifa fija de 70 (8.9 % contra 10.4 % en entrenamiento) y con tarifas menos dispersas (desviación 17.3 contra 18.2), así que queda más cerca de la mediana y su error sale menor.
 
 ## Ejercicio 3: los primeros modelos de tu proyecto
 

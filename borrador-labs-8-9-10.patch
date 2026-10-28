@@ -1,0 +1,531 @@
+diff --git a/laboratorios/semana-08-sesion-02/README.md b/laboratorios/semana-08-sesion-02/README.md
+index 38ec7a3..ce937dd 100644
+--- a/laboratorios/semana-08-sesion-02/README.md
++++ b/laboratorios/semana-08-sesion-02/README.md
+@@ -45,19 +45,19 @@ python3 ejercicio1_explorar.py
+ 
+ **Respuesta 1 (TODO 1), antes de ver la solución:** en `describe()`, ¿qué dos valores de la tabla te harían sospechar de un error sin necesidad de graficar nada?
+ 
+-_(tu respuesta)_
++El máximo de `tarifa` (999.99), que no es una tarifa plausible para un taxi y está muy lejos del percentil 75 (32.55), y el mínimo de `duracion_min` (-74), porque una duración no puede ser negativa. El mínimo de `distancia_km` en 0 también es sospechoso.
+ 
+ **Respuesta 2 (TODO 2):** abre `figuras/hist_tarifa.png` después del TODO 2. ¿Por qué casi todo el histograma queda comprimido a la izquierda?
+ 
+-_(tu respuesta)_
++Porque los 15 viajes con tarifa de 999.99 estiran el eje x hasta 1000. Las otras 2985 tarifas están por debajo de 78, así que ocupan menos de una décima del ancho del gráfico y quedan aplastadas a la izquierda.
+ 
+ **Respuesta 3 (TODO 3 y 4):** la regla del IQR marca más de 300 viajes con tarifa atípica. ¿Esperas que todos sean errores? ¿Cómo lo averiguarías?
+ 
+-_(tu respuesta)_
++No. El IQR solo dice que un valor está lejos del centro, no que esté mal. Lo averiguo mirando qué tarifas concretas son atípicas (`value_counts`) y de qué viajes son: si un valor exacto se repite cientos de veces y siempre en las mismas zonas, es una regla de negocio y no un error de captura.
+ 
+ **Lo que confirmó la salida, TODO por TODO:**
+ 
+-_(anota el límite superior, cuántos atípicos marcó y cómo se reparten)_
++Q1 = 13.99, Q3 = 32.55, IQR = 18.56, límite superior = 60.40. El IQR marcó 334 viajes: 302 con tarifa exacta de 70.00 (tarifa fija del aeropuerto), 15 con 999.99 (error de captura) y 17 viajes largos con tarifas entre 61.07 y 77.81. Aparte, hay 10 duraciones negativas que el IQR de la tarifa no detecta.
+ 
+ ## Durante el ConcepTest
+ 
+@@ -83,15 +83,15 @@ python3 ejercicio2_relaciones.py
+ 
+ **Hallazgo 1: qué muestra el gráfico de distancia contra tarifa, además de la tendencia general.**
+ 
+-_(tu hallazgo, con el número que lo confirma)_
++Además de la tendencia lineal (más distancia, más tarifa) hay dos grupos que no la siguen. Una línea horizontal en 70: 300 viajes que cuestan exactamente 70 sin importar la distancia, y todos van entre JFK Airport y una zona de Manhattan (tarifa fija). Y una línea vertical en distancia 0: 25 viajes con tarifas reales, en los que la distancia no se registró.
+ 
+ **Hallazgo 2: qué pasa con la propina según el método de pago, y si crees que describe a los pasajeros o al sistema que registra los datos.**
+ 
+-_(tu hallazgo, con el número que lo confirma)_
++En efectivo la propina es 0 en los 888 viajes (promedio 0.00); con tarjeta el promedio es 4.73 y ningún viaje tiene propina 0. Que sea exactamente 100 % contra 0 % describe al sistema, no a los pasajeros: la propina en efectivo no se registra. Además hay 60 viajes sin método de pago.
+ 
+ **Hallazgo 3: la duración tiene una correlación con la tarifa tan alta como la distancia. Si el modelo tiene que estimar la tarifa en el momento en que alguien pide el taxi, ¿puede usar la duración?**
+ 
+-_(tu respuesta)_
++No. La duración solo se conoce cuando el viaje termina, así que no existe en el momento de pedir el taxi. Su correlación con la tarifa (0.956) es casi la de la distancia (0.960) porque las dos crecen juntas, pero usarla sería fuga de información: el modelo se vería muy bien al evaluarlo y no podría usarse en producción. Lo que sí está disponible es la distancia estimada y la hora.
+ 
+ ## Ejercicio 3: explora el dataset de tu proyecto
+ 
+diff --git a/laboratorios/semana-08-sesion-02/starter/ejercicio1_explorar.py b/laboratorios/semana-08-sesion-02/starter/ejercicio1_explorar.py
+index d4018b5..e030840 100644
+--- a/laboratorios/semana-08-sesion-02/starter/ejercicio1_explorar.py
++++ b/laboratorios/semana-08-sesion-02/starter/ejercicio1_explorar.py
+@@ -22,12 +22,13 @@ print("Valores faltantes por columna:")
+ print(viajes.isna().sum())
+ # TODO 1: imprime la estadistica descriptiva de las columnas numericas,
+ # redondeada a 2 decimales.
+-print(viajes.head())
++print(viajes.describe().round(2))
+ 
+ print()
+ print("Paso 2: distribucion de la tarifa")
+ plt.figure()
+ # TODO 2: histograma de la tarifa, con 50 barras.
++plt.hist(viajes["tarifa"], bins=50)
+ plt.title("Tarifa de cada viaje")
+ plt.xlabel("tarifa")
+ plt.ylabel("cantidad de viajes")
+@@ -45,7 +46,11 @@ print()
+ print("Paso 3: atipicos con la regla del IQR")
+ # TODO 3: calcula Q1, Q3, el IQR y el limite superior (Q3 + 1.5 * IQR)
+ # de la tarifa.
+-limite_superior = viajes["tarifa"].max()
++q1 = viajes["tarifa"].quantile(0.25)
++q3 = viajes["tarifa"].quantile(0.75)
++iqr = q3 - q1
++limite_superior = q3 + 1.5 * iqr
++print(f"Q1: {q1:.2f}  Q3: {q3:.2f}  IQR: {iqr:.2f}")
+ atipicos = viajes[viajes["tarifa"] > limite_superior]
+ print(f"Limite superior: {limite_superior:.2f}")
+ print(f"Viajes sobre el limite superior: {len(atipicos)}")
+@@ -55,8 +60,8 @@ print()
+ print("Paso 4: atipico no es lo mismo que error")
+ # TODO 4: de los atipicos, cuenta los que tienen la tarifa de error de
+ # captura (999.99) y los que tienen una tarifa exacta de 70.00.
+-errores_de_captura = None
+-tarifa_exacta_70 = None
++errores_de_captura = (atipicos["tarifa"] == 999.99).sum()
++tarifa_exacta_70 = (atipicos["tarifa"] == 70.00).sum()
+ print(f"Error de captura (999.99): {errores_de_captura}")
+ print(f"Tarifa exacta de 70.00: {tarifa_exacta_70}")
+ print(f"Duraciones negativas: {(viajes['duracion_min'] < 0).sum()}")
+diff --git a/laboratorios/semana-08-sesion-02/starter/ejercicio2_relaciones.py b/laboratorios/semana-08-sesion-02/starter/ejercicio2_relaciones.py
+index 7992788..1be4c22 100644
+--- a/laboratorios/semana-08-sesion-02/starter/ejercicio2_relaciones.py
++++ b/laboratorios/semana-08-sesion-02/starter/ejercicio2_relaciones.py
+@@ -19,24 +19,48 @@ viajes = pd.read_csv("viajes_taxi.csv")
+ # TODO 1: quita solo los errores que el Ejercicio 1 ya confirmo (tarifa
+ # 999.99 y duracion negativa). No quites los demas atipicos. Imprime
+ # cuantas filas quedan.
+-limpios = viajes
++errores = (viajes["tarifa"] == 999.99) | (viajes["duracion_min"] < 0)
++limpios = viajes[~errores].copy()
++print(f"Filas tras quitar los errores confirmados: {len(limpios)}")
+ 
+ # TODO 2: grafico de dispersion de distancia_km (eje x) contra tarifa
+ # (eje y), guardado en figuras/distancia_vs_tarifa.png. Mira el grafico
+ # antes de seguir: busca puntos que no sigan la tendencia general y
+ # cuentalos con un filtro.
++plt.figure()
++plt.scatter(limpios["distancia_km"], limpios["tarifa"], s=8, alpha=0.4)
++plt.xlabel("distancia_km")
++plt.ylabel("tarifa")
++plt.title("Distancia contra tarifa")
++plt.savefig("figuras/distancia_vs_tarifa.png")
++plt.close()
++
++tarifa_fija = limpios[limpios["tarifa"] == 70]
++print(f"Viajes con tarifa exacta de 70: {len(tarifa_fija)}")
++print("Zonas de esos viajes:")
++print((tarifa_fija["zona_origen"] + " -> " + tarifa_fija["zona_destino"]).value_counts().head())
++sin_distancia = limpios[limpios["distancia_km"] == 0]
++print(f"Viajes con distancia 0: {len(sin_distancia)}")
+ 
+ # TODO 3: resumen_propina, con la propina promedio, la cantidad de viajes
+ # y la cantidad de viajes con propina 0, por metodo de pago.
+-resumen_propina = None
++resumen_propina = limpios.groupby("metodo_pago").agg(
++    propina_promedio=("propina", "mean"),
++    viajes=("propina", "size"),
++    propina_cero=("propina", lambda p: (p == 0).sum()),
++)
++print(resumen_propina.round(2))
++print(f"Viajes sin metodo de pago: {limpios['metodo_pago'].isna().sum()}")
+ 
+ # TODO 4: correlaciones, la correlacion de distancia_km, duracion_min,
+ # pasajeros y propina con la tarifa.
+-correlaciones = None
++correlaciones = limpios[["distancia_km", "duracion_min", "pasajeros", "propina"]].corrwith(limpios["tarifa"])
++print(correlaciones.round(3))
+ 
+ # TODO 5: cuantos viajes tienen pasajeros vacio y cuantos tienen 0.
+-pasajeros_vacios = None
+-pasajeros_cero = None
++pasajeros_vacios = limpios["pasajeros"].isna().sum()
++pasajeros_cero = (limpios["pasajeros"] == 0).sum()
++print(f"Pasajeros vacio: {pasajeros_vacios}  Pasajeros en 0: {pasajeros_cero}")
+ 
+ 
+ def comprobar(numero, condicion):
+diff --git a/laboratorios/semana-09-sesion-01/README.md b/laboratorios/semana-09-sesion-01/README.md
+index 5fe37fa..a9d0062 100644
+--- a/laboratorios/semana-09-sesion-01/README.md
++++ b/laboratorios/semana-09-sesion-01/README.md
+@@ -45,19 +45,19 @@ python3 ejercicio1_features_tiempo.py
+ 
+ **Respuesta 1 (TODO 4), antes de ver la solución:** si dejas la hora como un número del 0 al 23, ¿qué tan lejos queda la hora 23 de la hora 0 para un modelo que mide distancias entre números? ¿Y en el reloj?
+ 
+-_(tu respuesta)_
++Como número, 23 y 0 quedan a 23 unidades, la mayor distancia posible, aunque en el reloj están a una hora. Con seno y coseno las dos parejas (23 y 0, 11 y 12) quedan a la misma distancia, 0.26, que es lo que pasa en el reloj.
+ 
+ **Respuesta 2 (TODO 3):** sin el TODO 3, el Paso 4 muestra un solo grupo. Con la hora pico construida, ¿esperas que la tarifa por kilómetro sea más alta o más baja en hora pico? ¿Por qué, si la tarifa depende de la distancia y de la duración?
+ 
+-_(tu respuesta)_
++Más alta. La tarifa depende de la distancia y también del tiempo, y en hora pico el tráfico alarga el viaje para la misma distancia, así que cada kilómetro cuesta más. La salida lo confirma: mediana de 3.52 por km en hora pico contra 3.22 fuera de ella.
+ 
+ **Respuesta 3:** la duración del viaje no existe al pedir el taxi, pero la hora sí. ¿Qué parte de lo que la duración le diría al modelo puede traer `es_hora_pico`?
+ 
+-_(tu respuesta)_
++La parte de la duración que viene del tráfico. `es_hora_pico` le dice al modelo que ese viaje probablemente será más lento que otro de la misma distancia, que es justo lo que la duración aportaba además de la distancia, y se conoce antes de salir.
+ 
+ **Lo que confirmó la salida, TODO por TODO:**
+ 
+-_(anota la tarifa por kilómetro en cada grupo y las dos distancias del Paso 5)_
++TODO 1 y 2: hora, día de la semana y fin de semana salen de `fecha_hora_inicio`. TODO 3: tarifa por km mediana de 3.22 fuera de hora pico y 3.52 en hora pico. TODO 4: distancia entre 23 y 0 como número 23, como ciclo 0.26; entre 11 y 12 como número 1, como ciclo 0.26.
+ 
+ ## Durante el ConcepTest
+ 
+@@ -83,15 +83,15 @@ python3 ejercicio2_features_zona.py
+ 
+ **Respuesta 1:** ¿cuántos viajes tienen `es_tarifa_fija` en 1, y qué tarifa mínima y máxima tienen? ¿Qué te dice eso sobre lo que un modelo lineal puede aprender con esta columna?
+ 
+-_(tu respuesta)_
++300 viajes, todos con tarifa mínima y máxima de 70.00. La tarifa de esos viajes no depende de la distancia, pero un modelo lineal solo puede usar la columna para sumar un valor fijo a `a · distancia`: no puede anular el efecto de la distancia en esos viajes. Haría falta una interacción (`es_tarifa_fija × distancia_km`) o un modelo de árboles.
+ 
+ **Respuesta 2:** ¿cuántas columnas crea one-hot para la zona de origen, y cuántas la codificación ordinal? Si el modelo es una regresión lineal, ¿cuál de las dos usarías, y por qué la otra le da información falsa?
+ 
+-_(tu respuesta)_
++One-hot crea 8 columnas, una por zona; la ordinal crea 1. Con regresión lineal usaría one-hot. La ordinal asigna números por orden alfabético (Brooklyn 0, Harlem 1, JFK Airport 2, …, Upper West Side 7), y la regresión los trata como cantidades: supone que las zonas tienen un orden y que de Brooklyn a Harlem hay la misma diferencia que de Queens a Upper East Side, lo que es falso.
+ 
+ **Respuesta 3:** ¿qué columnas del dataset no existen al pedir el taxi? ¿Qué pasaría con el modelo si las usaras para entrenar?
+ 
+-_(tu respuesta)_
++`duracion_min` y `propina`, que solo se conocen al terminar el viaje, y `metodo_pago`, que se registra al pagar. `tarifa` es el objetivo. Si las usara para entrenar, el modelo tendría fuga de información: se vería excelente en la evaluación y no podría usarse al pedir el taxi, porque esos datos todavía no existen.
+ 
+ ## Ejercicio 3: dos features para tu proyecto
+ 
+diff --git a/laboratorios/semana-09-sesion-01/starter/ejercicio1_features_tiempo.py b/laboratorios/semana-09-sesion-01/starter/ejercicio1_features_tiempo.py
+index e54401e..639299d 100644
+--- a/laboratorios/semana-09-sesion-01/starter/ejercicio1_features_tiempo.py
++++ b/laboratorios/semana-09-sesion-01/starter/ejercicio1_features_tiempo.py
+@@ -16,22 +16,22 @@ inicio = pd.to_datetime(viajes["fecha_hora_inicio"])
+ 
+ print("Paso 1: partes de la fecha")
+ # TODO 1: la hora (0 a 23) y el dia de la semana (0 es lunes) de inicio.
+-viajes["hora"] = 0
+-viajes["dia_semana"] = 0
++viajes["hora"] = inicio.dt.hour
++viajes["dia_semana"] = inicio.dt.dayofweek
+ # TODO 2: es_fin_de_semana, 1 los sabados y domingos, 0 el resto.
+-viajes["es_fin_de_semana"] = 0
++viajes["es_fin_de_semana"] = (viajes["dia_semana"] >= 5).astype(int)
+ 
+ print("Paso 2: hora pico")
+ horas_pico = [7, 8, 9, 16, 17, 18, 19]
+ # TODO 3: es_hora_pico, 1 si la hora esta en horas_pico y no es fin de
+ # semana, 0 el resto.
+-viajes["es_hora_pico"] = 0
++viajes["es_hora_pico"] = (viajes["hora"].isin(horas_pico) & (viajes["es_fin_de_semana"] == 0)).astype(int)
+ 
+ print("Paso 3: la hora como ciclo")
+ # TODO 4: hora_sin y hora_cos, la hora como un punto en un reloj de 24
+ # horas.
+-viajes["hora_sin"] = 0.0
+-viajes["hora_cos"] = 0.0
++viajes["hora_sin"] = np.sin(2 * np.pi * viajes["hora"] / 24)
++viajes["hora_cos"] = np.cos(2 * np.pi * viajes["hora"] / 24)
+ 
+ columnas = ["fecha_hora_inicio", "hora", "dia_semana", "es_fin_de_semana", "es_hora_pico", "hora_sin", "hora_cos"]
+ print(viajes[columnas].head())
+diff --git a/laboratorios/semana-09-sesion-01/starter/ejercicio2_features_zona.py b/laboratorios/semana-09-sesion-01/starter/ejercicio2_features_zona.py
+index 50415a6..7624309 100644
+--- a/laboratorios/semana-09-sesion-01/starter/ejercicio2_features_zona.py
++++ b/laboratorios/semana-09-sesion-01/starter/ejercicio2_features_zona.py
+@@ -19,19 +19,41 @@ ZONAS_MANHATTAN = ["Midtown", "Upper East Side", "Upper West Side", "Lower Manha
+ # va de JFK Airport a una zona de Manhattan, o de una zona de Manhattan a
+ # JFK Airport. Imprime cuantos viajes la tienen en 1, y la tarifa minima
+ # y maxima de esos viajes.
++jfk_a_manhattan = (viajes["zona_origen"] == "JFK Airport") & viajes["zona_destino"].isin(ZONAS_MANHATTAN)
++manhattan_a_jfk = viajes["zona_origen"].isin(ZONAS_MANHATTAN) & (viajes["zona_destino"] == "JFK Airport")
++viajes["es_tarifa_fija"] = (jfk_a_manhattan | manhattan_a_jfk).astype(int)
++fijas = viajes.loc[viajes["es_tarifa_fija"] == 1, "tarifa"]
++print(f"Viajes con es_tarifa_fija = 1: {len(fijas)}  tarifa min {fijas.min():.2f}  max {fijas.max():.2f}")
+ 
+ # TODO 2: codificado, el resultado de codificar zona_origen con one-hot
+ # (pd.get_dummies), con el prefijo "origen" y dtype=int. Imprime los
+ # nombres de las columnas nuevas.
+-codificado = None
++codificado = pd.get_dummies(viajes["zona_origen"], prefix="origen", dtype=int)
++print("Columnas one-hot:", list(codificado.columns))
+ 
+ # TODO 3: codifica zona_origen de forma ordinal: un numero entero por
+ # zona, en orden alfabetico, en una columna origen_ordinal.
++zonas_ordenadas = sorted(viajes["zona_origen"].unique())
++viajes["origen_ordinal"] = viajes["zona_origen"].map({zona: i for i, zona in enumerate(zonas_ordenadas)})
++print("Ordinal:", {zona: i for i, zona in enumerate(zonas_ordenadas)})
+ 
+ # TODO 4: disponible_al_pedir, un diccionario con cada columna original
+ # del dataset y True o False segun exista en el momento en que alguien
+ # pide el taxi (antes del viaje). Imprime la decision de cada una.
+-disponible_al_pedir = None
++disponible_al_pedir = {
++    "id_viaje": True,           # existe, pero es un identificador: no es feature
++    "fecha_hora_inicio": True,
++    "zona_origen": True,
++    "zona_destino": True,
++    "distancia_km": True,       # se estima con la ruta antes de salir
++    "duracion_min": False,      # solo se conoce al terminar el viaje
++    "pasajeros": True,
++    "metodo_pago": False,       # se registra al pagar, al final
++    "tarifa": False,            # es el objetivo
++    "propina": False,           # se da al final del viaje
++}
++for columna, disponible in disponible_al_pedir.items():
++    print(f"{columna:18} {'disponible' if disponible else 'NO disponible'}")
+ 
+ 
+ def comprobar(numero, condicion):
+diff --git a/laboratorios/semana-09-sesion-02/README.md b/laboratorios/semana-09-sesion-02/README.md
+index 2a88201..7f7e0e6 100644
+--- a/laboratorios/semana-09-sesion-02/README.md
++++ b/laboratorios/semana-09-sesion-02/README.md
+@@ -47,19 +47,19 @@ python3 ejercicio1_fuga.py
+ 
+ **Respuesta 1, antes de ver la solución:** en la versión del compañero, ¿en qué línea entra el conjunto de prueba al entrenamiento? ¿Qué número de la salida lo delata?
+ 
+-_(tu respuesta)_
++En `X_preparado = escalador.fit_transform(imputador.fit_transform(X))`: el imputador y el escalador aprenden con las 2975 filas antes de dividir, así que la mediana, la media y la desviación ya incluyen el conjunto de prueba. Lo delata la salida: `Filas que vio el escalador: 2975`, cuando el entrenamiento debería tener 2380.
+ 
+ **Respuesta 2 (TODO 1 y 3):** sin resolver, la versión correcta dice que tiene 2975 filas de prueba. ¿Qué está midiendo ese error, si prueba y entrenamiento son las mismas filas?
+ 
+-_(tu respuesta)_
++Mide el error de entrenamiento, no el de prueba: el modelo se evalúa con las mismas filas con las que aprendió. Ese número (2.5590) no dice nada de cómo le irá con viajes nuevos.
+ 
+ **Respuesta 3:** ¿cuánto esperas que cambie el error absoluto medio en prueba al corregir la fuga? Si casi no cambia, ¿significa que no había fuga?
+ 
+-_(tu respuesta)_
++Esperaba un cambio pequeño, y así fue: 2.5375 con fuga contra 2.5373 corregido. Que casi no cambie no significa que no había fuga: la prueba igual entró al entrenamiento (2975 filas contra 2380). Aquí el efecto es mínimo porque la media y la mediana casi no cambian con 595 filas más (8.5034 contra 8.5576), pero con otro dataset o con otra transformación la diferencia puede ser grande.
+ 
+ **Lo que confirmó la salida, TODO por TODO:**
+ 
+-_(anota las filas que vio cada escalador y los dos errores)_
++Versión del compañero: el escalador vio 2975 filas, media de distancia 8.5034, error en prueba 2.5375. Versión correcta: el escalador vio 2380 filas (solo entrenamiento), media 8.5576, 595 filas de prueba, error en prueba 2.5373.
+ 
+ ## Durante el ConcepTest
+ 
+@@ -85,15 +85,15 @@ python3 ejercicio2_pipeline.py
+ 
+ **Respuesta 1:** ¿cuántas columnas quedan después de preparar los datos? Explica de dónde sale ese número a partir de los tres grupos de columnas.
+ 
+-_(tu respuesta)_
++25 columnas. Las 2 numéricas siguen siendo 2 (imputadas y escaladas); las 5 ya listas pasan sin cambios; y las 3 categóricas se convierten en 18 columnas one-hot: 8 de `zona_origen`, 8 de `zona_destino` y 2 de `metodo_pago`. 2 + 5 + 18 = 25.
+ 
+ **Respuesta 2:** ¿las medianas que aprendió el imputador coinciden con las de entrenamiento o con las de todo el dataset? ¿Qué demuestra eso?
+ 
+-_(tu respuesta)_
++Coinciden con las de entrenamiento: distancia 6.94 y pasajeros 1.0, mientras que la mediana de distancia de todo el dataset es 6.93. Demuestra que el imputador aprendió solo con entrenamiento: el conjunto de prueba no influyó en la preparación.
+ 
+ **Respuesta 3:** ¿qué le pasa al viaje desde el Bronx? ¿Qué habría pasado con `pd.get_dummies` aplicado por separado a ese viaje?
+ 
+-_(tu respuesta)_
++Como el entrenamiento nunca vio el Bronx, `OneHotEncoder(handle_unknown="ignore")` deja las 8 columnas de `zona_origen` en 0, y el viaje se predice con el resto de las columnas. Con `pd.get_dummies` aplicado solo a ese viaje se crearía una columna `zona_origen_Bronx` que el modelo no conoce y faltarían las otras 8, así que las columnas no coincidirían con las del entrenamiento y el modelo fallaría o leería las columnas desalineadas.
+ 
+ ## Ejercicio 3: el pipeline de tu proyecto
+ 
+diff --git a/laboratorios/semana-09-sesion-02/starter/ejercicio1_fuga.py b/laboratorios/semana-09-sesion-02/starter/ejercicio1_fuga.py
+index 4d3bff5..d0d32ca 100644
+--- a/laboratorios/semana-09-sesion-02/starter/ejercicio1_fuga.py
++++ b/laboratorios/semana-09-sesion-02/starter/ejercicio1_fuga.py
+@@ -36,17 +36,18 @@ print()
+ print("Version correcta")
+ # TODO 1: divide X e y en entrenamiento (80%) y prueba (20%), con
+ # random_state=42, antes de calcular cualquier estadistica.
+-X_ent, X_prueba, y_ent, y_prueba = X, X, y, y
++X_ent, X_prueba, y_ent, y_prueba = train_test_split(X, y, test_size=0.2, random_state=42)
+ 
+ # TODO 2: un Pipeline con tres pasos: imputar con la mediana, escalar y
+ # la regresion lineal.
+ pipeline = Pipeline([
+     ("imputar", SimpleImputer(strategy="median")),
++    ("escalar", StandardScaler()),
+     ("modelo", LinearRegression()),
+ ])
+ 
+ # TODO 3: el pipeline aprende solo con entrenamiento.
+-pipeline.fit(X, y)
++pipeline.fit(X_ent, y_ent)
+ 
+ mae_correcto = mean_absolute_error(y_prueba, pipeline.predict(X_prueba))
+ if "escalar" in pipeline.named_steps:
+diff --git a/laboratorios/semana-09-sesion-02/starter/ejercicio2_pipeline.py b/laboratorios/semana-09-sesion-02/starter/ejercicio2_pipeline.py
+index 2cad5f7..6f0a1ea 100644
+--- a/laboratorios/semana-09-sesion-02/starter/ejercicio2_pipeline.py
++++ b/laboratorios/semana-09-sesion-02/starter/ejercicio2_pipeline.py
+@@ -27,7 +27,7 @@ y = viajes["tarifa"]
+ 
+ # TODO 1: divide X e y en entrenamiento (80%) y prueba (20%), con
+ # random_state=42.
+-X_ent, X_prueba, y_ent, y_prueba = None, None, None, None
++X_ent, X_prueba, y_ent, y_prueba = train_test_split(X, y, test_size=0.2, random_state=42)
+ 
+ # TODO 2: arma un Pipeline para las columnas NUMERICAS (imputar con la
+ # mediana, despues escalar) y otro para las CATEGORICAS (imputar con el
+@@ -35,16 +35,34 @@ X_ent, X_prueba, y_ent, y_prueba = None, None, None, None
+ # sparse_output=False). Juntalos en un ColumnTransformer llamado
+ # preparacion, con las columnas YA_LISTAS pasando sin cambios
+ # ("passthrough").
+-preparacion = None
++numericas = Pipeline([
++    ("imputar", SimpleImputer(strategy="median")),
++    ("escalar", StandardScaler()),
++])
++categoricas = Pipeline([
++    ("imputar", SimpleImputer(strategy="most_frequent")),
++    ("codificar", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
++])
++preparacion = ColumnTransformer([
++    ("numericas", numericas, NUMERICAS),
++    ("categoricas", categoricas, CATEGORICAS),
++    ("ya_listas", "passthrough", YA_LISTAS),
++])
+ 
+ # TODO 3: aprende la preparacion solo con entrenamiento y transforma
+ # entrenamiento y prueba. Imprime cuantas columnas quedan.
+-X_ent_listo, X_prueba_listo = None, None
++X_ent_listo = preparacion.fit_transform(X_ent)
++X_prueba_listo = preparacion.transform(X_prueba)
++print("Entrenamiento listo:", X_ent_listo.shape, " Prueba lista:", X_prueba_listo.shape)
++print("Columnas:", list(preparacion.get_feature_names_out()))
+ 
+ # TODO 4: medianas_aprendidas, las medianas que aprendio el imputador de
+ # numericas (atributo statistics_). Imprimelas junto a las medianas de
+ # entrenamiento y las de todo el dataset.
+-medianas_aprendidas = None
++medianas_aprendidas = preparacion.named_transformers_["numericas"].named_steps["imputar"].statistics_
++print("Medianas aprendidas:      ", dict(zip(NUMERICAS, medianas_aprendidas)))
++print("Medianas de entrenamiento:", X_ent[NUMERICAS].median().to_dict())
++print("Medianas de todo el dataset:", X[NUMERICAS].median().to_dict())
+ 
+ # TODO 5: transforma el viaje nuevo de abajo, que sale de una zona que el
+ # entrenamiento nunca vio, y guarda en zona_origen_en_1 cuantas columnas
+@@ -54,7 +72,10 @@ nuevo = pd.DataFrame([{
+     "es_fin_de_semana": 0, "es_hora_pico": 1, "es_tarifa_fija": 0,
+     "zona_origen": "Bronx", "zona_destino": "Midtown", "metodo_pago": "tarjeta",
+ }])
+-zona_origen_en_1 = None
++nuevo_listo = pd.DataFrame(preparacion.transform(nuevo), columns=preparacion.get_feature_names_out())
++columnas_origen = [c for c in nuevo_listo.columns if c.startswith("categoricas__zona_origen_")]
++zona_origen_en_1 = int(nuevo_listo[columnas_origen].sum(axis=1).iloc[0])
++print("Columnas de zona_origen en 1 para el viaje desde el Bronx:", zona_origen_en_1)
+ 
+ 
+ def comprobar(numero, condicion):
+diff --git a/laboratorios/semana-10-sesion-01/README.md b/laboratorios/semana-10-sesion-01/README.md
+index 1c070ef..31e4de2 100644
+--- a/laboratorios/semana-10-sesion-01/README.md
++++ b/laboratorios/semana-10-sesion-01/README.md
+@@ -39,19 +39,19 @@ python3 ejercicio1_linea_base_y_ensamblaje.py
+ 
+ **Respuesta 1 (TODO 1):** la línea base predice siempre la mediana de la tarifa. ¿Cuánto esperas que se equivoque en promedio? ¿Para qué sirve un modelo que no usa ninguna columna?
+ 
+-_(tu respuesta)_
++Esperaba un error grande, del orden de la dispersión de la tarifa: la línea base se equivoca 12.53 en promedio en prueba. Sirve como piso de comparación: cualquier modelo que use columnas tiene que equivocarse menos que esto, o no está aprendiendo nada útil.
+ 
+ **Respuesta 2 (TODO 2):** un árbol sin límite puede seguir partiendo los datos hasta dejar un viaje por hoja. ¿Qué error esperas en entrenamiento, y qué esperas en prueba?
+ 
+-_(tu respuesta)_
++Error casi 0 en entrenamiento, porque memoriza cada viaje (0.0029), y bastante peor en prueba (1.70). Es sobreajuste: aprende también el ruido.
+ 
+ **Respuesta 3 (TODO 3 y 4):** ¿qué esperas que pase con la brecha entre entrenamiento y prueba al limitar la profundidad? ¿Y con 200 árboles promediados?
+ 
+-_(tu respuesta)_
++Al limitar la profundidad, la brecha baja de 1.70 a 0.26 y el error en prueba mejora a 1.27: pierde un poco en entrenamiento y gana en generalización. El bosque de 200 árboles baja el error en prueba respecto al árbol sin límite (1.30 contra 1.70), porque promediar reduce la varianza, pero su brecha sigue siendo 0.83: cada árbol del bosque crece sin límite. En estos datos no supera al árbol de profundidad 8.
+ 
+ **Lo que confirmó la tabla, TODO por TODO:**
+ 
+-_(anota el error en entrenamiento, en prueba y la brecha de cada modelo)_
++Línea base: entrenamiento 13.20, prueba 12.53, brecha -0.67. Árbol sin límite: 0.0029, 1.70, brecha 1.70. Árbol con max_depth=8: 1.01, 1.27, brecha 0.26. Bosque de 200 árboles: 0.47, 1.30, brecha 0.83.
+ 
+ ## Durante el ConcepTest
+ 
+@@ -77,19 +77,19 @@ python3 ejercicio2_regularizacion.py
+ 
+ **Respuesta 1:** ¿cuántas columnas recibe la regresión con interacciones de grado 3, y cuántas filas de entrenamiento hay? ¿Qué tiene que ver esa comparación con el error en prueba que obtuviste?
+ 
+-_(tu respuesta)_
++3275 columnas contra 2380 filas de entrenamiento: hay más coeficientes que datos. La regresión puede ajustar el entrenamiento casi exacto (error 0.91), pero los coeficientes quedan enormes e inestables, y en prueba el error explota (del orden de 2.4 × 10⁹).
+ 
+ **Respuesta 2:** ¿qué cambió entre `lineal grado 3` y `ridge grado 3` en el error de entrenamiento, y qué cambió en el de prueba? ¿Por qué Ridge empeora un poco en entrenamiento?
+ 
+-_(tu respuesta)_
++En entrenamiento Ridge empeora un poco (0.91 a 1.03); en prueba pasa de unos 2.4 × 10⁹ a 1.32. Ridge penaliza los coeficientes grandes, así que ya no puede ajustar cada detalle del entrenamiento, que era en buena parte ruido. Eso cuesta un poco en entrenamiento y es justo lo que lo hace generalizar.
+ 
+ **Respuesta 3:** ¿qué modelo quedó mejor en prueba? ¿Cuánto mejor que la línea base?
+ 
+-_(tu respuesta)_
++Gradient boosting, con 1.28 de error en prueba. La línea base se equivoca 12.53: el mejor modelo se equivoca unos 11.26 dólares menos por viaje, alrededor de un 90 % menos.
+ 
+ **Si terminas antes:** la brecha de la línea base es negativa (se equivoca menos en prueba que en entrenamiento). ¿Cómo puede pasar eso con un modelo que no aprende nada?
+ 
+-_(tu respuesta)_
++La línea base predice siempre la mediana del entrenamiento y no aprende nada, así que su error depende solo de qué tan lejos de esa mediana quedan las tarifas de cada conjunto. En esta división, por azar, la prueba quedó con menos viajes de tarifa fija de 70 (8.9 % contra 10.4 % en entrenamiento) y con tarifas menos dispersas (desviación 17.3 contra 18.2), así que queda más cerca de la mediana y su error sale menor.
+ 
+ ## Ejercicio 3: los primeros modelos de tu proyecto
+ 
+diff --git a/laboratorios/semana-10-sesion-01/starter/ejercicio1_linea_base_y_ensamblaje.py b/laboratorios/semana-10-sesion-01/starter/ejercicio1_linea_base_y_ensamblaje.py
+index 0d54c96..30dffd2 100644
+--- a/laboratorios/semana-10-sesion-01/starter/ejercicio1_linea_base_y_ensamblaje.py
++++ b/laboratorios/semana-10-sesion-01/starter/ejercicio1_linea_base_y_ensamblaje.py
+@@ -71,21 +71,21 @@ def evaluar(nombre, modelo):
+ 
+ # TODO 1: la linea base, un DummyRegressor que siempre predice la mediana
+ # de la tarifa de entrenamiento.
+-linea_base = DummyRegressor()
++linea_base = DummyRegressor(strategy="median")
+ evaluar("linea base", linea_base)
+ 
+ # TODO 2: un arbol de decision (DecisionTreeRegressor) sin ningun limite,
+ # con random_state=42.
+-arbol = DummyRegressor()
++arbol = DecisionTreeRegressor(random_state=42)
+ evaluar("arbol sin limite", arbol)
+ 
+ # TODO 3: el mismo arbol, regularizado con max_depth=8.
+-arbol_limitado = DummyRegressor()
++arbol_limitado = DecisionTreeRegressor(max_depth=8, random_state=42)
+ evaluar("arbol max_depth=8", arbol_limitado)
+ 
+ # TODO 4: un bosque aleatorio (RandomForestRegressor) de 200 arboles, con
+ # random_state=42.
+-bosque = DummyRegressor()
++bosque = RandomForestRegressor(n_estimators=200, random_state=42)
+ evaluar("bosque aleatorio", bosque)
+ 
+ tabla = pd.DataFrame(resultados)
+diff --git a/laboratorios/semana-10-sesion-01/starter/ejercicio2_regularizacion.py b/laboratorios/semana-10-sesion-01/starter/ejercicio2_regularizacion.py
+index f9bbe9a..b74b5b6 100644
+--- a/laboratorios/semana-10-sesion-01/starter/ejercicio2_regularizacion.py
++++ b/laboratorios/semana-10-sesion-01/starter/ejercicio2_regularizacion.py
+@@ -77,21 +77,31 @@ def evaluar(nombre, modelo, grado_interacciones=None):
+ 
+ 
+ # TODO 1: la misma linea base del Ejercicio 1, con el nombre "linea base".
++evaluar("linea base", DummyRegressor(strategy="median"))
+ 
+ # TODO 2: una regresion lineal sobre las interacciones de grado 3, con el
+ # nombre "lineal grado 3". Guarda en columnas_grado_3 cuantas columnas
+ # recibe el modelo (el atributo n_output_features_ del paso
+ # "interacciones" del pipeline que devuelve evaluar).
+-columnas_grado_3 = None
++pipeline_grado_3 = evaluar("lineal grado 3", LinearRegression(), grado_interacciones=3)
++columnas_grado_3 = pipeline_grado_3.named_steps["interacciones"].n_output_features_
++print(f"Columnas con interacciones de grado 3: {columnas_grado_3}  filas de entrenamiento: {len(X_ent)}")
+ 
+ # TODO 3: la misma regresion, regularizada con Ridge(alpha=10.0), con el
+ # nombre "ridge grado 3".
++evaluar("ridge grado 3", Ridge(alpha=10.0), grado_interacciones=3)
+ 
+ # Paso 4: un ensamblaje por boosting, con el nombre "gradient boosting".
++evaluar("gradient boosting", GradientBoostingRegressor(random_state=42))
+ 
+ # Paso 5: guarda la tabla en resultados_ejercicio2.csv y deja en "mejor"
+ # el nombre del modelo con menor error en prueba.
+-mejor = None
++tabla = pd.DataFrame(resultados)
++tabla.to_csv("resultados_ejercicio2.csv", index=False)
++print()
++print(tabla.to_string(index=False))
++mejor = tabla.loc[tabla["mae_prueba"].idxmin(), "modelo"]
++print("Mejor en prueba:", mejor)
+ 
+ 
+ def comprobar(numero, condicion):
