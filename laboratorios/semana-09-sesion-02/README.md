@@ -16,7 +16,7 @@ python3 -c "import sklearn; print(sklearn.__version__)"
 
 Este laboratorio usa `sparse_output=False` en `OneHotEncoder`, disponible desde scikit-learn 1.2. El `requirements.txt` del repositorio ya fija una versión posterior.
 
-Ten a mano el script de features de tu proyecto de la sesión pasada.
+Ten a mano tu notebook de features de la sesión pasada. Los tres ejercicios de hoy son scripts, no notebooks: un pipeline de preparación es código de producción, que tiene que correr igual cada vez y que otros archivos importan. En el Ejercicio 3, la preparación de tu proyecto pasa del notebook donde la probaste a ese script.
 
 ## Antes de empezar
 
@@ -95,11 +95,19 @@ Coinciden con las de entrenamiento: distancia 6.94 y pasajeros 1.0, mientras que
 
 Como el entrenamiento nunca vio el Bronx, `OneHotEncoder(handle_unknown="ignore")` deja las 8 columnas de `zona_origen` en 0, y el viaje se predice con el resto de las columnas. Con `pd.get_dummies` aplicado solo a ese viaje se crearía una columna `zona_origen_Bronx` que el modelo no conoce y faltarían las otras 8, así que las columnas no coincidirían con las del entrenamiento y el modelo fallaría o leería las columnas desalineadas.
 
-## Ejercicio 3: el pipeline de tu proyecto
+## Ejercicio 3: el pipeline de tu proyecto, como script
 
-Usa tu archivo con las 2 features de la sesión pasada y la plantilla [`plantilla-pipeline/pipeline_proyecto.py`](./plantilla-pipeline/pipeline_proyecto.py).
+Copia la plantilla [`plantilla-pipeline/pipeline_proyecto.py`](./plantilla-pipeline/pipeline_proyecto.py) a la carpeta de tu proyecto, al lado de tu notebook de features. Desde la próxima sesión, tus notebooks de modelos importan este archivo en vez de copiar su código:
 
-### Paso 1: clasifica tus columnas (5 minutos)
+```python
+from pipeline_proyecto import cargar_y_dividir, construir_preparacion
+```
+
+### Paso 1: pasa tus features a `agregar_features` (5 minutos)
+
+Copia de tu notebook de la sesión pasada solo las líneas que construyen tus 2 features, dentro de la función `agregar_features`. Sin gráficos, sin `print` y sin las celdas que usaste para probar ideas: esas se quedan en el notebook, como evidencia de por qué elegiste cada feature.
+
+### Paso 2: clasifica tus columnas (5 minutos)
 
 Escribe qué columnas son numéricas, cuáles categóricas y cuáles ya están listas, y cuál es el objetivo. Deja fuera toda columna que no exista al momento de predecir.
 
@@ -109,19 +117,29 @@ Escribe qué columnas son numéricas, cuáles categóricas y cuáles ya están l
 - **Ya listas (0/1):** `mismo_campo`, `funder_en_pais_autor`, `is_global_south`.
 - **Fuera, porque no existen al predecir o filtrarían la respuesta:** `funded_outputs_count` (se sabe después del financiamiento), `publication_year` (en un par real la publicación sale después del award, así que delataría el `label`), `fwci`, los identificadores (`award_key`, `work_key`) y los nombres (`funder_name`, campos en texto ya resumidos en `mismo_campo`).
 
-### Paso 2: decide cómo dividir (5 minutos)
+### Paso 3: decide cómo dividir (5 minutos)
 
-¿Tu modelo predice el futuro a partir de filas con fecha? Si sí, divide por fecha; si no, al azar. Justifica.
+¿Tu modelo predice el futuro a partir de filas con fecha? Si sí, divide por fecha dentro de `cargar_y_dividir`; si no, al azar. Justifica.
 
 Sí: el modelo se va a usar con convocatorias nuevas, así que divido por fecha. Entrenamiento con los awards que empezaron antes del año de corte (el percentil 80 de `award_start_year`) y prueba con los de ese año en adelante. Así la prueba simula convocatorias que el modelo nunca vio. Además, cada award y su par negativo comparten el año, así que caen siempre del mismo lado: un mismo award no aparece en entrenamiento y en prueba a la vez.
 
-### Paso 3: construye y corre el pipeline (15 minutos)
+### Paso 4: corre el script (10 minutos)
 
-Completa la plantilla y córrela. Anota la forma de los conjuntos de entrenamiento y prueba ya preparados, y la lista de columnas que produce.
+Desde una terminal, en la carpeta de tu proyecto:
 
+<<<<<<< HEAD
 Año de corte: ⟨X⟩. Entrenamiento: ⟨filas, columnas⟩. Prueba: ⟨filas, columnas⟩. Proporción de pares reales: 0.5 en los dos conjuntos.
 
 Columnas que produce: las 4 numéricas escaladas (`numericas__amount_usd`, `numericas__duration_days`, `numericas__authors_count`, `numericas__cited_by_count`), una columna one-hot por cada valor de `funding_type`, `award_domain_name` y `work_domain_name` (⟨X⟩ en total), y las 3 ya listas (`ya_listas__mismo_campo`, `ya_listas__funder_en_pais_autor`, `ya_listas__is_global_south`).
+=======
+```
+python3 pipeline_proyecto.py
+```
+
+Si corre de principio a fin en una terminal nueva, sin el notebook abierto, otro código ya lo puede importar. Anota la forma de los conjuntos de entrenamiento y prueba ya preparados, y la lista de columnas que produce.
+
+_(lo que imprimió tu script)_
+>>>>>>> 11d7186d1047ced2ecbfbbfef422d0dd87851462
 
 ## Antes de la próxima sesión
 

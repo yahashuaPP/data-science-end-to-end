@@ -14,7 +14,9 @@ pandas y matplotlib, de la sesión pasada. numpy se instala junto con pandas; ve
 python3 -c "import numpy; print(numpy.__version__)"
 ```
 
-Ten a mano tus 3 hallazgos de la exploración de la Semana 8, Sesión 2: las features de hoy salen de ahí.
+Ten a mano tu notebook de exploración de la Semana 8, Sesión 2: las features de hoy salen de tus 3 hallazgos.
+
+Los laboratorios de hoy siguen siendo notebooks: diseñar una feature es probar varias ideas y mirar cuál aporta. La próxima sesión, las features que se queden pasan a un script, que es lo que corre en producción.
 
 ## Antes de empezar
 
@@ -36,12 +38,7 @@ Creando columnas nuevas a partir de las que ya existen. Para la tarifa fija, una
 
 ## Ejercicio 1: features de fecha y hora
 
-Archivo: [`starter/ejercicio1_features_tiempo.py`](./starter/ejercicio1_features_tiempo.py), sobre [`starter/viajes_taxi.csv`](./starter/viajes_taxi.csv), el mismo dataset de la sesión pasada. El script ya quita los errores confirmados, convierte `fecha_hora_inicio` y compara la tarifa por kilómetro según la hora pico; faltan 4 `TODO`: hora, día de la semana, fin de semana, hora pico y la hora como ciclo. Córrelo una vez antes de tocar nada:
-
-```
-cd laboratorios/semana-09-sesion-01/starter
-python3 ejercicio1_features_tiempo.py
-```
+Notebook: [`starter/ejercicio1_features_tiempo.ipynb`](./starter/ejercicio1_features_tiempo.ipynb), sobre [`starter/viajes_taxi.csv`](./starter/viajes_taxi.csv), el mismo dataset de la sesión pasada. Ya quita los errores confirmados, convierte `fecha_hora_inicio` y compara la tarifa por kilómetro según la hora pico; faltan 4 `TODO`: hora, día de la semana, fin de semana, hora pico y la hora como ciclo. Córrelo completo una vez antes de tocar nada (**Run All**).
 
 **Respuesta 1 (TODO 4), antes de ver la solución:** si dejas la hora como un número del 0 al 23, ¿qué tan lejos queda la hora 23 de la hora 0 para un modelo que mide distancias entre números? ¿Y en el reloj?
 
@@ -75,11 +72,7 @@ _(tu respuesta)_
 
 ## Ejercicio 2: zona, codificación y disponibilidad
 
-Solo o en pareja. Archivo: [`starter/ejercicio2_features_zona.py`](./starter/ejercicio2_features_zona.py), sobre el mismo `viajes_taxi.csv`. Completa los 4 `TODO`. Al final, el script imprime una comprobación por TODO: complétalos hasta que todas digan `OK`.
-
-```
-python3 ejercicio2_features_zona.py
-```
+Solo o en pareja. Notebook: [`starter/ejercicio2_features_zona.ipynb`](./starter/ejercicio2_features_zona.ipynb), sobre el mismo `viajes_taxi.csv`. Completa los 4 `TODO`. La última celda imprime una comprobación por TODO: complétalos hasta que todas digan `OK`.
 
 **Respuesta 1:** ¿cuántos viajes tienen `es_tarifa_fija` en 1, y qué tarifa mínima y máxima tienen? ¿Qué te dice eso sobre lo que un modelo lineal puede aprender con esta columna?
 
@@ -95,10 +88,11 @@ One-hot crea 8 columnas, una por zona; la ordinal crea 1. Con regresión lineal 
 
 ## Ejercicio 3: dos features para tu proyecto
 
-Usa el mismo archivo de la exploración de la Semana 8 y la plantilla [`plantilla-features/features_proyecto.py`](./plantilla-features/features_proyecto.py).
+Usa el mismo archivo de tu exploración de la Semana 8 y copia la plantilla [`plantilla-features/features_proyecto.ipynb`](./plantilla-features/features_proyecto.ipynb) a la carpeta de tu proyecto. Todo lo que pide este ejercicio queda en el notebook: el código de cada feature, la evidencia y la justificación en las celdas de texto.
 
 ### Paso 1: el momento de la predicción (5 minutos)
 
+<<<<<<< HEAD
 Escribe qué predice tu modelo y en qué momento: qué información existe en ese instante y cuál todavía no.
 
 GrantMatch predice si una convocatoria (award) es pertinente para un investigador, representado por una de sus publicaciones: la probabilidad de que ese award financie ese trabajo. Se predice en el momento de recomendar, cuando la convocatoria está abierta. En ese instante existen los datos del award (funder, país del funder, tipo de financiamiento, campo, monto, duración, año de inicio) y los del perfil del investigador (campo de sus publicaciones, países de sus autores, número de autores, citas). Todavía no existen: si el award lo financió (`label`, que es lo que predecimos), cuántas publicaciones terminó financiando (`funded_outputs_count`) ni las publicaciones que salgan del financiamiento.
@@ -123,18 +117,29 @@ pares["funder_en_pais_autor"] = [
     int(bool(pais) and pais in paises) for pais, paises in zip(pais_funder, paises_autores)
 ]
 ```
+=======
+En la primera celda de texto, escribe qué predice tu modelo y en qué momento: qué información existe en ese instante y cuál todavía no.
+
+### Paso 2: construye las 2 features (15 minutos)
+
+Crea 2 columnas nuevas, derivadas de las existentes, cada una en su celda y con su evidencia (una correlación, una diferencia de promedios). Al menos una tiene que salir de uno de tus hallazgos de la exploración. Si pruebas una idea que no aporta, deja la celda y escribe por qué la descartas: también es evidencia.
+>>>>>>> 11d7186d1047ced2ecbfbbfef422d0dd87851462
 
 ### Paso 3: justifica cada feature (5 minutos)
 
-Para cada una: de qué hallazgo o conocimiento del dominio sale, qué evidencia muestra que aporta (una correlación, una diferencia de promedios), y por qué existe en el momento de predecir. Si alguna es categórica, di qué codificación usarías según el modelo que planeas entrenar.
+Debajo de cada feature: de qué hallazgo o conocimiento del dominio sale, qué evidencia muestra que aporta, y por qué existe en el momento de predecir. Si alguna es categórica, di qué codificación usarías según el modelo que planeas entrenar. Antes de hacer commit, reinicia el kernel y corre todo.
 
-**Feature 1:**
+**Ruta de tu notebook de features en tu fork:**
 
+<<<<<<< HEAD
 `mismo_campo` (1 si el award y la publicación son del mismo campo de investigación). Sale del hallazgo del EDA de la Semana 8: ⟨X⟩ % de los pares reales comparten campo. Evidencia: entre los pares con `mismo_campo` = 1, ⟨X⟩ % son reales, contra ⟨X⟩ % con `mismo_campo` = 0 (correlación con `label` de ⟨X⟩). Existe al predecir: el campo del award viene de la convocatoria y el de la publicación, del perfil del investigador. Es binaria, así que entra tal cual en cualquier modelo.
 
 **Feature 2:**
 
 `funder_en_pais_autor` (1 si el país del funder está entre los países de los autores). Sale del conocimiento del dominio: la mayoría de las agencias financian sobre todo a investigadores de su propio país. Evidencia: entre los pares con `funder_en_pais_autor` = 1, ⟨X⟩ % son reales, contra ⟨X⟩ % con 0 (correlación con `label` de ⟨X⟩). Existe al predecir: el país del funder es parte de la convocatoria y el de los autores, de su afiliación. También es binaria. Si en vez de esto usara el país del funder como categoría, la codificaría con one-hot para un modelo lineal, y ordinal solo para árboles.
+=======
+_(tu respuesta)_
+>>>>>>> 11d7186d1047ced2ecbfbbfef422d0dd87851462
 
 ## Antes de la próxima sesión
 
