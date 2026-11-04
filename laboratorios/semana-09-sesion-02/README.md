@@ -34,7 +34,7 @@ _(tu respuesta)_
 
 Para escalar la distancia, le restas la media y la divides por la desviación estándar. ¿Con qué viajes calculas esa media: con todos, o solo con los de entrenamiento? ¿Cambia algo?
 
-_(tu respuesta)_
+Solo con los de entrenamiento. Si uso todos, la media y la desviación ya contienen información de los viajes de prueba, y la evaluación deja de simular viajes nuevos: es fuga de información. En los números cambia poco (la media de distancia pasó de 8.5034 con todos a 8.5576 solo con entrenamiento en la Semana 9.2), pero el procedimiento queda mal, y con datos más chicos o con transformaciones más fuertes la diferencia puede ser grande.
 
 ## Ejercicio 1: encontrar y corregir la fuga
 
@@ -103,19 +103,25 @@ Usa tu archivo con las 2 features de la sesión pasada y la plantilla [`plantill
 
 Escribe qué columnas son numéricas, cuáles categóricas y cuáles ya están listas, y cuál es el objetivo. Deja fuera toda columna que no exista al momento de predecir.
 
-_(tu clasificación)_
+- **Objetivo:** `label` (1 si el award financió la publicación, 0 si es un par armado al azar).
+- **Numéricas:** `amount_usd`, `duration_days`, `authors_count`, `cited_by_count`.
+- **Categóricas:** `funding_type`, `award_domain_name`, `work_domain_name`.
+- **Ya listas (0/1):** `mismo_campo`, `funder_en_pais_autor`, `is_global_south`.
+- **Fuera, porque no existen al predecir o filtrarían la respuesta:** `funded_outputs_count` (se sabe después del financiamiento), `publication_year` (en un par real la publicación sale después del award, así que delataría el `label`), `fwci`, los identificadores (`award_key`, `work_key`) y los nombres (`funder_name`, campos en texto ya resumidos en `mismo_campo`).
 
 ### Paso 2: decide cómo dividir (5 minutos)
 
 ¿Tu modelo predice el futuro a partir de filas con fecha? Si sí, divide por fecha; si no, al azar. Justifica.
 
-_(tu decisión)_
+Sí: el modelo se va a usar con convocatorias nuevas, así que divido por fecha. Entrenamiento con los awards que empezaron antes del año de corte (el percentil 80 de `award_start_year`) y prueba con los de ese año en adelante. Así la prueba simula convocatorias que el modelo nunca vio. Además, cada award y su par negativo comparten el año, así que caen siempre del mismo lado: un mismo award no aparece en entrenamiento y en prueba a la vez.
 
 ### Paso 3: construye y corre el pipeline (15 minutos)
 
 Completa la plantilla y córrela. Anota la forma de los conjuntos de entrenamiento y prueba ya preparados, y la lista de columnas que produce.
 
-_(lo que imprimió tu pipeline)_
+Año de corte: ⟨X⟩. Entrenamiento: ⟨filas, columnas⟩. Prueba: ⟨filas, columnas⟩. Proporción de pares reales: 0.5 en los dos conjuntos.
+
+Columnas que produce: las 4 numéricas escaladas (`numericas__amount_usd`, `numericas__duration_days`, `numericas__authors_count`, `numericas__cited_by_count`), una columna one-hot por cada valor de `funding_type`, `award_domain_name` y `work_domain_name` (⟨X⟩ en total), y las 3 ya listas (`ya_listas__mismo_campo`, `ya_listas__funder_en_pais_autor`, `ya_listas__is_global_south`).
 
 ## Antes de la próxima sesión
 
@@ -123,4 +129,4 @@ _(lo que imprimió tu pipeline)_
 
 Ya tienes los datos listos para entrenar. Si entrenas dos modelos sobre el mismo conjunto y uno da un error mucho menor en entrenamiento que en prueba, ¿qué le está pasando?
 
-_(tu respuesta)_
+Se está sobreajustando: aprendió también el ruido y los casos particulares del entrenamiento, así que memoriza en vez de generalizar. Lo delata la brecha entre los dos errores. Se corrige con un modelo más simple o regularizado (menos profundidad, menos columnas, Ridge), con más datos, o promediando muchos modelos.

@@ -32,7 +32,7 @@ _(tu respuesta)_
 
 La exploración encontró dos patrones que no existen como columnas: la tarifa fija entre JFK y Manhattan, y viajes que cuestan más por kilómetro a ciertas horas. El modelo solo ve columnas. ¿Cómo le das esa información?
 
-_(tu respuesta)_
+Creando columnas nuevas a partir de las que ya existen. Para la tarifa fija, una columna `es_tarifa_fija` que vale 1 cuando el viaje va entre JFK y una zona de Manhattan. Para la hora, sacar la hora de `fecha_hora_inicio`, una columna `es_hora_pico` y la hora como ciclo (seno y coseno), para que 23 y 0 queden cerca.
 
 ## Ejercicio 1: features de fecha y hora
 
@@ -101,13 +101,28 @@ Usa el mismo archivo de la exploración de la Semana 8 y la plantilla [`plantill
 
 Escribe qué predice tu modelo y en qué momento: qué información existe en ese instante y cuál todavía no.
 
-_(tu respuesta)_
+GrantMatch predice si una convocatoria (award) es pertinente para un investigador, representado por una de sus publicaciones: la probabilidad de que ese award financie ese trabajo. Se predice en el momento de recomendar, cuando la convocatoria está abierta. En ese instante existen los datos del award (funder, país del funder, tipo de financiamiento, campo, monto, duración, año de inicio) y los del perfil del investigador (campo de sus publicaciones, países de sus autores, número de autores, citas). Todavía no existen: si el award lo financió (`label`, que es lo que predecimos), cuántas publicaciones terminó financiando (`funded_outputs_count`) ni las publicaciones que salgan del financiamiento.
+
+Como la OBT solo tiene financiamientos reales (`label` = 1 en todas las filas), el script arma primero pares negativos: a cada award le asigna al azar una publicación que no financió (`label` = 0). Así queda un problema de clasificación con clases balanceadas.
 
 ### Paso 2: construye las 2 features (15 minutos)
 
 Completa la plantilla con 2 columnas nuevas, derivadas de las existentes. Al menos una tiene que salir de uno de tus hallazgos de la exploración.
 
-_(el código de cada feature)_
+El código completo está en [`plantilla-features/features_proyecto.py`](./plantilla-features/features_proyecto.py). Las dos features:
+
+```python
+pares["mismo_campo"] = (
+    pares["award_field_name"].notna()
+    & (pares["award_field_name"] == pares["work_field_name"])
+).astype(int)
+
+paises_autores = pares["author_country_codes"].fillna("").astype(str).str.upper().str.split("|")
+pais_funder = pares["funder_country_code"].fillna("").astype(str).str.upper()
+pares["funder_en_pais_autor"] = [
+    int(bool(pais) and pais in paises) for pais, paises in zip(pais_funder, paises_autores)
+]
+```
 
 ### Paso 3: justifica cada feature (5 minutos)
 
@@ -115,11 +130,11 @@ Para cada una: de qué hallazgo o conocimiento del dominio sale, qué evidencia 
 
 **Feature 1:**
 
-_(tu justificación)_
+`mismo_campo` (1 si el award y la publicación son del mismo campo de investigación). Sale del hallazgo del EDA de la Semana 8: ⟨X⟩ % de los pares reales comparten campo. Evidencia: entre los pares con `mismo_campo` = 1, ⟨X⟩ % son reales, contra ⟨X⟩ % con `mismo_campo` = 0 (correlación con `label` de ⟨X⟩). Existe al predecir: el campo del award viene de la convocatoria y el de la publicación, del perfil del investigador. Es binaria, así que entra tal cual en cualquier modelo.
 
 **Feature 2:**
 
-_(tu justificación)_
+`funder_en_pais_autor` (1 si el país del funder está entre los países de los autores). Sale del conocimiento del dominio: la mayoría de las agencias financian sobre todo a investigadores de su propio país. Evidencia: entre los pares con `funder_en_pais_autor` = 1, ⟨X⟩ % son reales, contra ⟨X⟩ % con 0 (correlación con `label` de ⟨X⟩). Existe al predecir: el país del funder es parte de la convocatoria y el de los autores, de su afiliación. También es binaria. Si en vez de esto usara el país del funder como categoría, la codificaría con one-hot para un modelo lineal, y ordinal solo para árboles.
 
 ## Antes de la próxima sesión
 
@@ -127,4 +142,4 @@ _(tu justificación)_
 
 Para escalar la distancia antes de entrenar, le restas la media y la divides por la desviación estándar. ¿Con qué viajes calculas esa media: con todos, o solo con los de entrenamiento? ¿Cambia algo?
 
-_(tu respuesta)_
+Solo con los de entrenamiento. Si uso todos, la media y la desviación ya contienen información de los viajes de prueba, y la evaluación deja de simular viajes nuevos: es fuga de información. En los números cambia poco (la media de distancia pasó de 8.5034 con todos a 8.5576 solo con entrenamiento en la Semana 9.2), pero el procedimiento queda mal, y con datos más chicos o con transformaciones más fuertes la diferencia puede ser grande.

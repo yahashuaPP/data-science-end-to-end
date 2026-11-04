@@ -11,6 +11,7 @@ select
     has_description, has_abstract,
     length(award_text) as award_text_len,
     length(work_text)  as work_text_len,
-    cited_by_count, fwci, authors_count, linked_authors_count, language, work_type
+    cited_by_count, fwci, authors_count, linked_authors_count, language, work_type,
+    array_to_string(author_country_codes, '|') as author_country_codes
 from OBT.OBT_AWARD_WORK
 sample (50000 rows);

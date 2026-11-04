@@ -20,13 +20,13 @@ _(tu respuesta)_
 
 **¿Por qué un promedio de muchos árboles puede equivocarse menos que el mejor de esos árboles por separado?**
 
-_(tu respuesta)_
+Porque cada árbol se equivoca de forma distinta: se entrena con una muestra distinta de filas (y de columnas en cada corte), así que sus errores están poco correlacionados. Al promediar, los errores que van en direcciones opuestas se cancelan y la varianza baja, mientras el sesgo queda más o menos igual. El mejor árbol solo también tiene su propio ruido; el promedio se queda con lo que todos los árboles tienen en común, que es la señal.
 
 ## Pregunta de apertura
 
 Ya tienes los datos listos para entrenar. Si entrenas dos modelos sobre el mismo conjunto y uno da un error mucho menor en entrenamiento que en prueba, ¿qué le está pasando?
 
-_(tu respuesta)_
+Se está sobreajustando: aprendió también el ruido y los casos particulares del entrenamiento, así que memoriza en vez de generalizar. Lo delata la brecha entre los dos errores. Se corrige con un modelo más simple o regularizado (menos profundidad, menos columnas, Ridge), con más datos, o promediando muchos modelos.
 
 ## Ejercicio 1: línea base, un árbol y un bosque
 
@@ -111,19 +111,19 @@ Una fila por modelo, con la métrica de tu proyecto en entrenamiento y en prueba
 
 **¿Cuál es tu línea base, y por qué esa y no otra?**
 
-_(tu respuesta)_
+`DummyClassifier(strategy="prior")`: predice siempre la proporción de pares reales del entrenamiento. Es un problema de clasificación con clases balanceadas, así que su AUC es 0.5 y su exactitud 0.5: es lo que saca cualquier modelo que no distinga un financiamiento real de un par al azar. No hay una regla del dominio más natural; la más cercana sería "recomendar solo awards del mismo campo", y esa ya está como feature (`mismo_campo`).
 
 **¿Alguno de tus modelos se sobreajusta? Muestra la evidencia con números de tu tabla.**
 
-_(tu respuesta)_
+⟨Revisar con la tabla real.⟩ El candidato es el bosque sin límite: AUC de entrenamiento ⟨X⟩ contra ⟨X⟩ en prueba, una brecha de ⟨X⟩, porque cada árbol crece hasta memorizar los pares. La regresión logística casi no tiene brecha (⟨X⟩): con pocas columnas no tiene con qué memorizar.
 
 **¿Qué regularización aplicaste (o por qué no hizo falta), y qué cambió en la tabla?**
 
-_(tu respuesta)_
+Dos. En la regresión logística probé `C=1` y `C=0.01` (más regularización): ⟨la AUC de prueba casi no cambia, ⟨X⟩ contra ⟨X⟩, porque el modelo no se sobreajustaba⟩. En el bosque limité la profundidad a 8: la brecha bajó de ⟨X⟩ a ⟨X⟩ y la AUC de prueba ⟨subió/se mantuvo⟩ en ⟨X⟩.
 
 **¿Cuánto mejora tu mejor modelo a la línea base?**
 
-_(tu respuesta)_
+El mejor en prueba es ⟨modelo⟩, con AUC ⟨X⟩ contra 0.5 de la línea base (⟨+X⟩). En exactitud, ⟨X⟩ contra 0.5. Ojo: los negativos son pares al azar, que son fáciles de distinguir; con negativos más difíciles (awards del mismo campo que no financiaron la publicación) la mejora sería menor.
 
 ## Antes de la próxima sesión
 
@@ -131,4 +131,4 @@ _(tu respuesta)_
 
 Para estimar la tarifa de un viaje, podrías entrenar un ensamblaje, entrenar una red neuronal o escribirle a un LLM los datos del viaje y pedirle un número. ¿Qué tendrías que medir de cada opción, además del error, para decidir cuál usar en la app de taxis?
 
-_(tu respuesta)_
+Además del error: el costo por predicción y por mes, el tiempo de respuesta (la app tiene que dar la tarifa al instante), si la misma consulta da siempre el mismo número (no se le puede cobrar distinto a dos pasajeros por el mismo viaje), si se puede explicar una tarifa, el costo y el tiempo de entrenar y reentrenar, y qué datos salen de la empresa (un LLM externo recibe los datos de cada viaje).

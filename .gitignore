@@ -36,3 +36,7 @@ derby.log
 
 # Material reemplazado (no se sube)
 _to_delete/
+
+# Datos del proyecto GrantMatch (se exportan de Snowflake, no se suben)
+laboratorios/**/obt_award_work_muestra.csv
+laboratorios/**/pares_con_features.csv
