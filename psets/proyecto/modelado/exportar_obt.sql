@@ -1,5 +1,5 @@
 -- Correr en Snowsight (PSET2_DB) y descargar el resultado como CSV:
--- guardalo junto a este script como obt_award_work_muestra.csv
+-- guardalo en psets/proyecto/data/raw/obt_award_work_muestra.csv
 -- Muestra de 50 000 pares: la OBT completa (1,88M filas con textos largos)
 -- es demasiado para un CSV. Los textos van como longitud, no completos.
 select

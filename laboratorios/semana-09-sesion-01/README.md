@@ -24,11 +24,11 @@ A partir de la lectura previa:
 
 **Según el artículo, ¿qué diferencia a una feature que tiene sentido de negocio de una que solo mejora una métrica?**
 
-_(tu respuesta)_
+Que representa un comportamiento o un valor real del cliente, aporta un contexto que el número bruto no da (una proporción, una tendencia) y se puede explicar a la gente del negocio: se puede justificar por qué influye en la predicción. Una feature que solo mejora la métrica sale de combinar todas las columnas posibles y probarlas en el modelo; el artículo advierte que así es poco probable encontrar algo predictivo, y lo que aparezca puede no significar nada.
 
 **Elige uno de los ejemplos del artículo: ¿qué conocimiento del negocio traduce a una columna, y cómo?**
 
-_(tu respuesta)_
+Las transacciones online como proporción. El conocimiento del negocio es que no es lo mismo hacer 5 compras online de 100 que 5 de 5: el número absoluto es igual, pero el segundo cliente compra solo online. La columna se construye dividiendo las transacciones online entre el total de transacciones del cliente: 5 % para el cliente A y 100 % para el B.
 
 ## Pregunta de apertura
 
@@ -92,38 +92,11 @@ Usa el mismo archivo de tu exploración de la Semana 8 y copia la plantilla [`pl
 
 ### Paso 1: el momento de la predicción (5 minutos)
 
-<<<<<<< HEAD
-Escribe qué predice tu modelo y en qué momento: qué información existe en ese instante y cuál todavía no.
-
-GrantMatch predice si una convocatoria (award) es pertinente para un investigador, representado por una de sus publicaciones: la probabilidad de que ese award financie ese trabajo. Se predice en el momento de recomendar, cuando la convocatoria está abierta. En ese instante existen los datos del award (funder, país del funder, tipo de financiamiento, campo, monto, duración, año de inicio) y los del perfil del investigador (campo de sus publicaciones, países de sus autores, número de autores, citas). Todavía no existen: si el award lo financió (`label`, que es lo que predecimos), cuántas publicaciones terminó financiando (`funded_outputs_count`) ni las publicaciones que salgan del financiamiento.
-
-Como la OBT solo tiene financiamientos reales (`label` = 1 en todas las filas), el script arma primero pares negativos: a cada award le asigna al azar una publicación que no financió (`label` = 0). Así queda un problema de clasificación con clases balanceadas.
-
-### Paso 2: construye las 2 features (15 minutos)
-
-Completa la plantilla con 2 columnas nuevas, derivadas de las existentes. Al menos una tiene que salir de uno de tus hallazgos de la exploración.
-
-El código completo está en [`plantilla-features/features_proyecto.py`](./plantilla-features/features_proyecto.py). Las dos features:
-
-```python
-pares["mismo_campo"] = (
-    pares["award_field_name"].notna()
-    & (pares["award_field_name"] == pares["work_field_name"])
-).astype(int)
-
-paises_autores = pares["author_country_codes"].fillna("").astype(str).str.upper().str.split("|")
-pais_funder = pares["funder_country_code"].fillna("").astype(str).str.upper()
-pares["funder_en_pais_autor"] = [
-    int(bool(pais) and pais in paises) for pais, paises in zip(pais_funder, paises_autores)
-]
-```
-=======
 En la primera celda de texto, escribe qué predice tu modelo y en qué momento: qué información existe en ese instante y cuál todavía no.
 
 ### Paso 2: construye las 2 features (15 minutos)
 
 Crea 2 columnas nuevas, derivadas de las existentes, cada una en su celda y con su evidencia (una correlación, una diferencia de promedios). Al menos una tiene que salir de uno de tus hallazgos de la exploración. Si pruebas una idea que no aporta, deja la celda y escribe por qué la descartas: también es evidencia.
->>>>>>> 11d7186d1047ced2ecbfbbfef422d0dd87851462
 
 ### Paso 3: justifica cada feature (5 minutos)
 
@@ -131,15 +104,7 @@ Debajo de cada feature: de qué hallazgo o conocimiento del dominio sale, qué e
 
 **Ruta de tu notebook de features en tu fork:**
 
-<<<<<<< HEAD
-`mismo_campo` (1 si el award y la publicación son del mismo campo de investigación). Sale del hallazgo del EDA de la Semana 8: ⟨X⟩ % de los pares reales comparten campo. Evidencia: entre los pares con `mismo_campo` = 1, ⟨X⟩ % son reales, contra ⟨X⟩ % con `mismo_campo` = 0 (correlación con `label` de ⟨X⟩). Existe al predecir: el campo del award viene de la convocatoria y el de la publicación, del perfil del investigador. Es binaria, así que entra tal cual en cualquier modelo.
-
-**Feature 2:**
-
-`funder_en_pais_autor` (1 si el país del funder está entre los países de los autores). Sale del conocimiento del dominio: la mayoría de las agencias financian sobre todo a investigadores de su propio país. Evidencia: entre los pares con `funder_en_pais_autor` = 1, ⟨X⟩ % son reales, contra ⟨X⟩ % con 0 (correlación con `label` de ⟨X⟩). Existe al predecir: el país del funder es parte de la convocatoria y el de los autores, de su afiliación. También es binaria. Si en vez de esto usara el país del funder como categoría, la codificaría con one-hot para un modelo lineal, y ordinal solo para árboles.
-=======
-_(tu respuesta)_
->>>>>>> 11d7186d1047ced2ecbfbbfef422d0dd87851462
+[`psets/proyecto/modelado/features_proyecto.ipynb`](../../psets/proyecto/modelado/features_proyecto.ipynb). Ahí están el momento de la predicción, los pares negativos (la OBT solo tiene financiamientos reales), las dos features (`mismo_campo` y `funder_en_pais_autor`) con su evidencia y su justificación.
 
 ## Antes de la próxima sesión
 

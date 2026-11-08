@@ -24,11 +24,11 @@ A partir de la lectura previa:
 
 **Según el artículo, ¿qué es la fuga de información, y por qué un modelo con fuga puede verse excelente en la evaluación y fallar en producción?**
 
-_(tu respuesta)_
+Es cuando información del conjunto de prueba (o del objetivo) entra por error en el entrenamiento. El modelo aprende patrones que en la realidad no tendrá disponibles, así que sus métricas de evaluación salen infladas; en producción esa información no está, el modelo no generaliza y su rendimiento cae. El artículo lo compara con un estudiante que practica con el examen filtrado: saca muy buena nota en ese papel, pero no refleja lo que sabe.
 
 **El artículo describe varias formas en que se produce una fuga. ¿Cuál de ellas viste la sesión pasada con la duración del viaje?**
 
-_(tu respuesta)_
+La fuga de la variable objetivo (*target leakage*): usar como feature algo que es consecuencia del objetivo y que no existe en el momento de predecir. El ejemplo del artículo son las llamadas al servicio al cliente en un modelo de cancelación de suscripciones, que ocurren por la cancelación. La duración del viaje es lo mismo: se conoce recién cuando el viaje termina, igual que la tarifa que queremos predecir.
 
 ## Pregunta de apertura
 
@@ -127,19 +127,15 @@ Sí: el modelo se va a usar con convocatorias nuevas, así que divido por fecha.
 
 Desde una terminal, en la carpeta de tu proyecto:
 
-<<<<<<< HEAD
-Año de corte: ⟨X⟩. Entrenamiento: ⟨filas, columnas⟩. Prueba: ⟨filas, columnas⟩. Proporción de pares reales: 0.5 en los dos conjuntos.
-
-Columnas que produce: las 4 numéricas escaladas (`numericas__amount_usd`, `numericas__duration_days`, `numericas__authors_count`, `numericas__cited_by_count`), una columna one-hot por cada valor de `funding_type`, `award_domain_name` y `work_domain_name` (⟨X⟩ en total), y las 3 ya listas (`ya_listas__mismo_campo`, `ya_listas__funder_en_pais_autor`, `ya_listas__is_global_south`).
-=======
 ```
 python3 pipeline_proyecto.py
 ```
 
 Si corre de principio a fin en una terminal nueva, sin el notebook abierto, otro código ya lo puede importar. Anota la forma de los conjuntos de entrenamiento y prueba ya preparados, y la lista de columnas que produce.
 
-_(lo que imprimió tu script)_
->>>>>>> 11d7186d1047ced2ecbfbbfef422d0dd87851462
+Desde `psets/proyecto/modelado/`: año de corte: ⟨X⟩. Entrenamiento: ⟨filas, columnas⟩. Prueba: ⟨filas, columnas⟩. Proporción de pares reales: 0.5 en los dos conjuntos.
+
+Columnas que produce: las 4 numéricas escaladas (`numericas__amount_usd`, `numericas__duration_days`, `numericas__authors_count`, `numericas__cited_by_count`), una columna one-hot por cada valor de `funding_type`, `award_domain_name` y `work_domain_name` (⟨X⟩ en total), y las 3 ya listas (`ya_listas__mismo_campo`, `ya_listas__funder_en_pais_autor`, `ya_listas__is_global_south`).
 
 ## Antes de la próxima sesión
 

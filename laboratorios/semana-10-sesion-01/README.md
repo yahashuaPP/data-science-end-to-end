@@ -18,7 +18,7 @@ A partir de la lectura previa:
 
 **Según el artículo, ¿qué es un ensamblaje, y en qué se diferencian bagging y boosting en la forma de combinar sus modelos?**
 
-_(tu respuesta)_
+Un grupo de modelos (estimadores o miembros) cuyas predicciones se combinan en una sola, como un comité: si los miembros son diversos, el conjunto suele acertar más que cualquiera por separado. En **bagging** los modelos se entrenan de forma independiente, cada uno con una muestra bootstrap de los datos (con reemplazo), y se combinan por promedio o votación, con el mismo peso para todos; el ejemplo es el bosque aleatorio, que además muestrea columnas. En **boosting** se entrenan en serie: cada modelo nuevo le da más peso a los ejemplos que los anteriores fallaron, y cada uno pesa en el resultado según qué tan bien le fue; los ejemplos son AdaBoost y gradient boosting, que ajusta cada árbol nuevo al error residual.
 
 **¿Por qué un promedio de muchos árboles puede equivocarse menos que el mejor de esos árboles por separado?**
 

@@ -20,7 +20,7 @@ A partir de la lectura previa:
 
 **Según el artículo, ¿para qué tipo de datos y de problema conviene el aprendizaje automático clásico, y para cuál un LLM?**
 
-_(tu respuesta)_
+El aprendizaje automático clásico conviene con datos estructurados y tabulares, con etiquetas bien definidas y conjuntos de datos modestos, y cuando la latencia es crítica o hace falta interpretar el modelo; los ejemplos son mantenimiento predictivo con sensores, detección de fraude y riesgo financiero. Un LLM conviene cuando la entrada es texto o datos no estructurados y la tarea exige razonar sobre el contexto (generar o resumir texto, analizar documentos, atención al cliente), sobre todo si no hay datos etiquetados y un modelo preentrenado sirve directamente con un prompt.
 
 **El artículo compara las dos opciones en datos, costo y explicabilidad. ¿Cuál de esas tres diferencias pesa más para tu proyecto?**
 
@@ -112,7 +112,7 @@ Elige 10 filas de tu conjunto de prueba y escribe un prompt con algunas filas de
 
 Una tabla con las tres opciones (métrica, costo, explicabilidad) y un párrafo que diga cuál usarías en tu proyecto y por qué, con los números de tu tabla.
 
-El código está en [`proyecto/comparar_proyecto.py`](./proyecto/comparar_proyecto.py) y escribe `proyecto/comparacion_proyecto.csv`. La prueba del LLM usa 10 pares de prueba (5 reales y 5 al azar) y 20 de entrenamiento como ejemplos; la métrica sobre esas 10 filas es la exactitud, porque una AUC con 10 filas no dice nada.
+El notebook es [`psets/proyecto/modelado/comparar_proyecto.ipynb`](../../psets/proyecto/modelado/comparar_proyecto.ipynb) y escribe `comparacion_proyecto.csv`. La prueba del LLM usa 10 pares de prueba (5 reales y 5 al azar) y 20 de entrenamiento como ejemplos; la métrica sobre esas 10 filas es la exactitud, porque una AUC con 10 filas no dice nada.
 
 | Opción | AUC en prueba | Exactitud en los 10 pares | Entrenamiento | Costo de 10 000 pares | Explicabilidad |
 |---|---|---|---|---|---|
@@ -128,4 +128,4 @@ Usaría el ensamblaje. ⟨Ajustar con los números reales:⟩ su AUC en prueba (
 
 Dos compañeros reportan errores distintos para "el mismo" gradient boosting sobre los mismos datos de taxis. ¿Qué tendrías que saber de cada corrida para descubrir por qué no coinciden?
 
-La versión exacta de los datos (qué archivo y qué limpieza), la versión del código (el commit), las versiones de las librerías (Python, scikit-learn, numpy), las semillas (`random_state` de la división y del modelo) y cómo dividieron los datos. Lo vi en este mismo curso: el mismo `ejercicio2_regularizacion.py` daba un error de prueba de 22.7 para `lineal grado 3` con scikit-learn 1.9 y de 2.4 × 10⁹ con la 1.5.2 del curso.
+La versión exacta de los datos (qué archivo y qué limpieza), la versión del código (el commit), las versiones de las librerías (Python, scikit-learn, numpy), las semillas (`random_state` de la división y del modelo) y cómo dividieron los datos. Lo vi en este mismo curso: el mismo ejercicio de regularización de la Semana 10.1 daba un error de prueba de 22.7 para `lineal grado 3` con scikit-learn 1.9 y de 2.4 × 10⁹ con la 1.5.2 del curso.

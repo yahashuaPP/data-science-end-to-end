@@ -32,7 +32,7 @@ _(tu respuesta)_
 
 Entrenas un modelo que predice la tarifa de un viaje en taxi. Sin que lo sepas, 15 de los 3000 viajes tienen una tarifa de 999.99 por un error de captura. ¿Qué le pasa al modelo? ¿Lo notarías mirando solo su resultado final?
 
-_(tu respuesta)_
+El modelo intenta ajustar esos 15 viajes, que están a casi 1000 dólares de todo lo demás: en una regresión lineal arrastran los coeficientes y empeoran la predicción de los 2985 viajes normales; en un árbol crean hojas que predicen tarifas absurdas. Mirando solo el resultado final probablemente no lo notaría: el error promedio sube, pero no dice por qué. Se descubre mirando los datos antes de entrenar (un `describe()` o un histograma).
 
 ## Ejercicio 1: resumen, distribución y atípicos
 
@@ -102,7 +102,7 @@ En el paso 5 del notebook, para cada hallazgo: una celda de código con el núme
 
 **Ruta de tu notebook de exploración en tu fork:**
 
-_(tu respuesta)_
+[`psets/proyecto/modelado/explorar_proyecto.ipynb`](../../psets/proyecto/modelado/explorar_proyecto.ipynb), sobre la muestra de la OBT que exporta [`psets/proyecto/modelado/exportar_obt.sql`](../../psets/proyecto/modelado/exportar_obt.sql).
 
 ## Antes de la próxima sesión
 
@@ -110,4 +110,4 @@ _(tu respuesta)_
 
 La tarifa fija de JFK y la hora del día no existen como columnas del dataset de taxis. ¿Cómo le darías esa información a un modelo?
 
-_(tu respuesta)_
+Creando columnas nuevas a partir de las que ya existen: una columna `es_tarifa_fija` que vale 1 cuando el viaje va entre JFK y una zona de Manhattan, y, de `fecha_hora_inicio`, la hora, si es hora pico y la hora como ciclo (seno y coseno), para que 23 y 0 queden cerca.
