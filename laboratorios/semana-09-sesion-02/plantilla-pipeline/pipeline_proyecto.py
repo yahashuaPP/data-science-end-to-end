@@ -19,7 +19,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 # TODO: el mismo archivo de tu notebook de features de la sesion pasada.
-RUTA_DATOS = "TODO_ruta_del_archivo.csv"
+RUTA_DATOS = "../data/processed/TODO_archivo.csv"
 
 OBJETIVO = "TODO_columna_objetivo"
 NUMERICAS = ["TODO_numerica_1", "TODO_numerica_2"]
