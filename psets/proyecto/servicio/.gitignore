@@ -1,0 +1,3 @@
+# Se regeneran con python servicio/exportar_modelo.py (modelo.joblib ya
+# esta fuera por *.joblib en el .gitignore de la raiz).
+modelo_info.json
