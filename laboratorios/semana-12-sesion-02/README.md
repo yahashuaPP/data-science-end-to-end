@@ -74,15 +74,15 @@ Viaje de Midtown a JFK Airport (2026-11-05 08:30, 26.4 km, 2 pasajeros, tarjeta)
 
 **Tu voto, antes de discutir en pareja** (A, B, C o D):
 
-_(tu voto)_
+No hubo votación: en esta sesión no se hizo el ConcepTest en clase.
 
 **Tu razonamiento:**
 
-_(tu respuesta)_
+No aplica (sin ConcepTest en clase).
 
 **Después de discutir en pareja, ¿cambiaste de voto? ¿Por qué?**
 
-_(tu respuesta)_
+No aplica (sin ConcepTest en clase).
 
 ## Ejercicio 2: el fraude, en el momento del pago
 

@@ -22,11 +22,11 @@ A partir de la lectura previa:
 
 **Según el artículo, ¿qué preguntas responde la exploración de datos antes de entrenar cualquier modelo?**
 
-_(tu respuesta)_
+La pregunta de fondo es "¿con qué estoy trabajando?": cuáles son las características de los datos, qué anomalías tienen y qué patrones y relaciones esconden, antes de preprocesar y entrenar. La autora (Miriam Santos) la divide en tres tareas: un panorama del conjunto (cuántas observaciones, de qué tipo es cada variable, cuántos faltantes y duplicados, con estadística descriptiva), la evaluación de cada variable y de cómo se relacionan (análisis univariado y multivariado), y la calidad de los datos (faltantes, desbalance, valores constantes o duplicados, variables redundantes o ruidosas). Además es el punto de partida de las hipótesis que después se prueban, y no se hace una sola vez: se repite en cada etapa del preprocesamiento y del modelado.
 
 **El artículo distingue la exploración de una sola variable de la exploración de la relación entre dos. ¿Qué herramienta propone para cada una?**
 
-_(tu respuesta)_
+Para una sola variable: si es numérica, estadística descriptiva (media, desviación estándar, asimetría, curtosis, cuantiles) y un histograma; si es categórica, la moda y una tabla de frecuencias, con un gráfico de barras. Para la relación entre dos: gráficos de interacción entre pares de variables y coeficientes de correlación en una matriz o mapa de calor, eligiendo el coeficiente según el tipo de variable (Spearman entre numéricas, V de Cramér entre categóricas o entre una categórica y una numérica discretizada). Todo eso lo junta en una herramienta, ydata-profiling, que con un solo `ProfileReport` da el panorama, las dos exploraciones, las correlaciones y alertas automáticas de calidad (duplicados, alta correlación, desbalance, faltantes, ceros).
 
 ## Pregunta de apertura
 
@@ -58,15 +58,15 @@ Q1 = 13.99, Q3 = 32.55, IQR = 18.56, límite superior = 60.40. El IQR marcó 334
 
 **Tu voto, antes de discutir en pareja** (A, B, C o D):
 
-_(tu voto)_
+No hubo votación: en esta sesión no se hizo el ConcepTest en clase.
 
 **Tu razonamiento:**
 
-_(tu respuesta)_
+No aplica (sin ConcepTest en clase).
 
 **Después de discutir en pareja, ¿cambiaste de voto? ¿Por qué?**
 
-_(tu respuesta)_
+No aplica (sin ConcepTest en clase).
 
 ## Ejercicio 2: relaciones entre variables
 

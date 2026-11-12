@@ -1,0 +1,6 @@
+# Credenciales: el .env de docker compose y la llave RSA opcional de Spark.
+# El .gitignore del curso no los cubre: nunca se suben.
+.env
+secrets/
+*.p8
+*.pem

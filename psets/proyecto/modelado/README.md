@@ -6,7 +6,7 @@ GrantMatch recomienda convocatorias de financiamiento (awards) a investigadores.
 
 Todo se corre desde esta carpeta (`psets/proyecto/modelado/`), con el kernel de Python 3.11 del Dev Container y el servidor de MLflow levantado (puerto 5050). Antes de cada commit: **Restart** y **Run All** en cada notebook.
 
-1. **Datos.** En Snowsight, corre [`exportar_obt.sql`](./exportar_obt.sql) y guarda el resultado como `../data/raw/obt_award_work_muestra.csv`. `data/` no se sube (está en `.gitignore`).
+1. **Datos.** Si `PSET2_DB` está vacía (cuenta de Snowflake nueva), corre primero [`../ingesta/pipeline_snowsight.sql`](../ingesta/pipeline_snowsight.sql) en Snowsight: construye la OBT desde OpenAlex (~20 min). Después, en Snowsight, corre [`exportar_obt.sql`](./exportar_obt.sql) y guarda el resultado como `../data/processed/obt_award_work_muestra.csv`. `data/` no se sube (está en `.gitignore`).
 2. **[`explorar_proyecto.ipynb`](./explorar_proyecto.ipynb)** (Semana 8): resumen, objetivo y tres hallazgos.
 3. **[`features_proyecto.ipynb`](./features_proyecto.ipynb)** (Semana 9.1): arma los pares negativos, escribe `../data/processed/pares_proyecto.csv` y prueba las dos features (`mismo_campo`, `funder_en_pais_autor`).
 4. **[`pipeline_proyecto.py`](./pipeline_proyecto.py)** (Semana 9.2): las features, la división por año del award y la preparación. Compruébalo con `python3 pipeline_proyecto.py`.

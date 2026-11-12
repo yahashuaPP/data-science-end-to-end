@@ -56,15 +56,15 @@ Gradient boosting: error 1.07 en entrenamiento y 1.28 en prueba, 0.26 s. Red neu
 
 **Tu voto, antes de discutir en pareja** (A, B, C o D):
 
-_(tu voto)_
+No hubo votación: en esta sesión no se hizo el ConcepTest en clase.
 
 **Tu razonamiento:**
 
-_(tu respuesta)_
+No aplica (sin ConcepTest en clase).
 
 **Después de discutir en pareja, ¿cambiaste de voto? ¿Por qué?**
 
-_(tu respuesta)_
+No aplica (sin ConcepTest en clase).
 
 ## Ejercicio 2: tres soluciones sobre los mismos 20 viajes
 

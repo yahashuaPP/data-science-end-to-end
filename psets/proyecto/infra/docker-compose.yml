@@ -1,0 +1,229 @@
+# ============================================================
+# PSet 2 - Infraestructura local (GrantMatch, copiada de pset_2/ del repo del equipo)
+# Se levanta desde psets/proyecto/infra/:  docker compose up -d   (lee infra/.env)
+#   Kestra (orquestacion) + Postgres (backend de Kestra)
+#   dbt Core (Silver/Gold)  +  Spark master/worker (OBT)
+# Snowflake es externo (SaaS): se configura en .env
+#
+# Responsables de seccion (para no pisarse):
+#   [ROL 1]  servicios postgres + kestra
+#   [ROL 2]  servicio dbt
+#   [ROL 3]  servicios spark-master + spark-worker
+# ============================================================
+
+name: pset2
+
+x-snowflake-env: &snowflake-env
+  SNOWFLAKE_ACCOUNT: ${SNOWFLAKE_ACCOUNT:-}
+  SNOWFLAKE_USER: ${SNOWFLAKE_USER:-}
+  SNOWFLAKE_PASSWORD: ${SNOWFLAKE_PASSWORD:-}
+  SNOWFLAKE_ROLE: ${SNOWFLAKE_ROLE:-PSET2_ROLE}
+  SNOWFLAKE_WAREHOUSE: ${SNOWFLAKE_WAREHOUSE:-PSET2_WH}
+  SNOWFLAKE_DATABASE: ${SNOWFLAKE_DATABASE:-PSET2_DB}
+  SNOWFLAKE_SCHEMA_BRONZE: ${SNOWFLAKE_SCHEMA_BRONZE:-BRONZE}
+  SNOWFLAKE_SCHEMA_SILVER: ${SNOWFLAKE_SCHEMA_SILVER:-SILVER}
+  SNOWFLAKE_SCHEMA_GOLD: ${SNOWFLAKE_SCHEMA_GOLD:-GOLD}
+  SNOWFLAKE_SCHEMA_OBT: ${SNOWFLAKE_SCHEMA_OBT:-OBT}
+
+services:
+  # ----------------------------------------------------------
+  # [ROL 1] Backend de Kestra
+  # ----------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: pset2-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kestra
+      POSTGRES_USER: ${KESTRA_DB_USER:-kestra}
+      POSTGRES_PASSWORD: ${KESTRA_DB_PASSWORD:-kestra_local_pw}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d kestra -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [pset2_net]
+
+  # ----------------------------------------------------------
+  # [ROL 1] Kestra (UI en http://localhost:8080)
+  #  - Los flows de ../orquestacion/flows los despliega el servicio kestra-deploy (abajo) por API
+  #    cada vez que se hace `docker compose up`.
+  #  - Variables de entorno ENV_XXX  ->  {{ envs.xxx }} dentro de los flows
+  #  - Versión fija: con `latest` + pull_policy: always cada integrante podía terminar
+  #    con un Kestra distinto. Los flows están validados contra v1.3.37.
+  # ----------------------------------------------------------
+  kestra:
+    image: kestra/kestra:v1.3.37
+    container_name: pset2-kestra
+    user: "root"
+    restart: unless-stopped
+    command: server standalone
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      # Solo localhost: con docker.sock montado, exponer Kestra en la red (p. ej. el Wi-Fi
+      # de la U) permitiría a terceros lanzar contenedores y leer las credenciales.
+      - "127.0.0.1:8080:8080"   # UI / API
+      - "127.0.0.1:8081:8081"   # management / health
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8081/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    volumes:
+      - ../warehouse/dbt:/app/dbt                            # <- dbt visible para Kestra
+      - ../procesamiento:/app/spark                        # <- spark visible para Kestra
+      - kestra_data:/app/storage
+      - kestra_wd:/tmp/kestra-wd
+      - /var/run/docker.sock:/var/run/docker.sock # task runner Docker (dbt/spark desde Kestra)
+    environment:
+      # --- variables accesibles en flows como {{ envs.snowflake_user }}, etc. ---
+      ENV_SNOWFLAKE_ACCOUNT: ${SNOWFLAKE_ACCOUNT:-}
+      ENV_SNOWFLAKE_USER: ${SNOWFLAKE_USER:-}
+      ENV_SNOWFLAKE_PASSWORD: ${SNOWFLAKE_PASSWORD:-}
+      ENV_SNOWFLAKE_ROLE: ${SNOWFLAKE_ROLE:-PSET2_ROLE}
+      ENV_SNOWFLAKE_WAREHOUSE: ${SNOWFLAKE_WAREHOUSE:-PSET2_WH}
+      ENV_SNOWFLAKE_DATABASE: ${SNOWFLAKE_DATABASE:-PSET2_DB}
+      ENV_SNOWFLAKE_SCHEMA_BRONZE: ${SNOWFLAKE_SCHEMA_BRONZE:-BRONZE}
+      ENV_OPENALEX_S3_BASE: ${OPENALEX_S3_BASE:-s3://openalex/data/parquet}
+      ENV_AWS_REGION: ${AWS_REGION:-us-east-1}
+      ENV_AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      ENV_AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://postgres:5432/kestra
+            driverClassName: org.postgresql.Driver
+            username: ${KESTRA_DB_USER:-kestra}
+            password: ${KESTRA_DB_PASSWORD:-kestra_local_pw}
+        kestra:
+          server:
+            basicAuth:
+              username: ${KESTRA_USER:-admin@pset2.local}
+              password: ${KESTRA_PASSWORD:?Define KESTRA_PASSWORD en .env (8+ caracteres, mayúscula y número)}
+          repository:
+            type: postgres
+          storage:
+            type: local
+            local:
+              basePath: /app/storage
+          queue:
+            type: postgres
+          tasks:
+            tmpDir:
+              path: /tmp/kestra-wd/tmp
+          url: http://localhost:8080/
+          plugins:
+            configurations:
+              # Permite que el Docker task runner monte docker.sock: el flow de ingesta lo
+              # usa para disparar `dbt build` (pset2-dbt) y la OBT (pset2-spark-master).
+              - type: io.kestra.plugin.scripts.runner.docker.Docker
+                values:
+                  volume-enabled: true
+    networks: [pset2_net]
+
+  # ----------------------------------------------------------
+  # [ROL 1] Despliegue de flows: importa ../orquestacion/flows/*.yml por la API de Kestra
+  #  (crea o actualiza) cuando Kestra está sano, y termina. Reemplaza a micronaut.io.watch,
+  #  que en Kestra 1.3 no cargaba los archivos y escribía copias (main_*.yml) en el repo.
+  #  Re-desplegar tras editar un flow:  docker compose up kestra-deploy
+  # ----------------------------------------------------------
+  kestra-deploy:
+    image: curlimages/curl:8.10.1
+    container_name: pset2-kestra-deploy
+    depends_on:
+      kestra:
+        condition: service_healthy
+    volumes:
+      - ../orquestacion/flows:/flows:ro
+    environment:
+      KESTRA_USER: ${KESTRA_USER:-admin@pset2.local}
+      KESTRA_PASSWORD: ${KESTRA_PASSWORD:?Define KESTRA_PASSWORD en .env}
+    entrypoint: ["/bin/sh", "-c"]
+    # /flows/import responde 200 aunque un flow sea inválido: los que fallan vienen en el
+    # cuerpo de la respuesta. Por eso se exige que el cuerpo sea "[]". Solo se importan
+    # los NN_*.yml versionados (no copias main_*.yml que pudieran quedar en disco).
+    command:
+      - |
+        set -e
+        for f in /flows/[0-9][0-9]_*.yml; do
+          r=$$(curl -fsS -u "$$KESTRA_USER:$$KESTRA_PASSWORD" \
+            -X POST http://kestra:8080/api/v1/main/flows/import -F "fileUpload=@$$f")
+          if [ "$$r" != "[]" ]; then echo "ERROR: Kestra rechazó $$f: $$r"; exit 1; fi
+          echo "flow desplegado: $$f"
+        done
+    restart: "no"
+    networks: [pset2_net]
+
+  # ----------------------------------------------------------
+  # [ROL 2] dbt Core (contenedor "de trabajo": se queda vivo y
+  #  se ejecuta con  docker compose exec dbt dbt <comando>)
+  # ----------------------------------------------------------
+  dbt:
+    image: ghcr.io/dbt-labs/dbt-snowflake:1.9.latest
+    # La imagen oficial solo se publica para amd64: sin esto falla en Macs con Apple Silicon.
+    platform: linux/amd64
+    container_name: pset2-dbt
+    entrypoint: ["tail", "-f", "/dev/null"]
+    working_dir: /usr/app/dbt
+    volumes:
+      - ../warehouse/dbt:/usr/app/dbt                        # <- editar modelos desde tu PC
+    environment:
+      <<: *snowflake-env
+      DBT_PROFILES_DIR: /usr/app/dbt
+      DBT_TARGET: ${DBT_TARGET:-dev}
+      DBT_THREADS: ${DBT_THREADS:-4}
+    networks: [pset2_net]
+
+  # ----------------------------------------------------------
+  # [ROL 3] Spark standalone (UI master: http://localhost:8090)
+  #  Construir la OBT:  docker compose exec spark-master /opt/spark-apps/run_obt.sh
+  # ----------------------------------------------------------
+  spark-master:
+    image: apache/spark:3.5.3-python3
+    container_name: pset2-spark-master
+    user: root
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host spark-master --port 7077 --webui-port 8080
+    ports:
+      - "8090:8080"   # Spark Master UI
+      - "7077:7077"
+    volumes:
+      - ../procesamiento:/opt/spark-apps                   # <- editar jobs desde tu PC
+      - ./secrets:/opt/secrets:ro                 # <- llave RSA opcional (gitignored)
+      - spark_ivy:/opt/ivy                        # <- cache del conector de Snowflake
+    environment:
+      <<: *snowflake-env
+      # Opcional: autenticación por llave RSA (ver spark/README.md). Vacío = usa password.
+      SNOWFLAKE_PRIVATE_KEY_FILE: ${SNOWFLAKE_PRIVATE_KEY_FILE:-}
+    networks: [pset2_net]
+
+  spark-worker:
+    image: apache/spark:3.5.3-python3
+    container_name: pset2-spark-worker
+    user: root
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077 --webui-port 8081
+    depends_on: [spark-master]
+    ports:
+      - "8091:8081"   # Spark Worker UI
+    volumes:
+      - ../procesamiento:/opt/spark-apps
+    environment:
+      <<: *snowflake-env
+      SPARK_WORKER_MEMORY: ${SPARK_WORKER_MEMORY:-3g}   # >= executor de run_obt.sh (2g) + margen
+      SPARK_WORKER_CORES: ${SPARK_WORKER_CORES:-2}
+    networks: [pset2_net]
+
+volumes:
+  postgres_data:
+  kestra_data:
+  kestra_wd:
+  spark_ivy:        # [ROL 3] jars del conector Snowflake (evita re-descargarlos)
+
+networks:
+  pset2_net:
+    name: pset2_net
+    driver: bridge

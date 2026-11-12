@@ -72,15 +72,15 @@ Los dos gradient boosting tienen los mismos datos y los mismos hiperparámetros:
 
 **Tu voto, antes de discutir en pareja** (A, B, C o D):
 
-_(tu voto)_
+No hubo votación: en esta sesión no se hizo el ConcepTest en clase.
 
 **Tu razonamiento:**
 
-_(tu respuesta)_
+No aplica (sin ConcepTest en clase).
 
 **Después de discutir en pareja, ¿cambiaste de voto? ¿Por qué?**
 
-_(tu respuesta)_
+No aplica (sin ConcepTest en clase).
 
 ## Ejercicio 2: comparar con evidencia y elegir
 

@@ -1,0 +1,5 @@
+# Artefactos y paquetes de dbt (se regeneran con dbt deps / dbt build).
+target/
+dbt_packages/
+logs/
+.user.yml

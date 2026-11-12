@@ -1,5 +1,5 @@
 -- Correr en Snowsight (PSET2_DB) y descargar el resultado como CSV:
--- guardalo en psets/proyecto/data/raw/obt_award_work_muestra.csv
+-- guardalo en psets/proyecto/data/processed/obt_award_work_muestra.csv
 -- Muestra de 50 000 pares: la OBT completa (1,88M filas con textos largos)
 -- es demasiado para un CSV. Los textos van como longitud, no completos.
 select
@@ -13,5 +13,5 @@ select
     length(work_text)  as work_text_len,
     cited_by_count, fwci, authors_count, linked_authors_count, language, work_type,
     array_to_string(author_country_codes, '|') as author_country_codes
-from OBT.OBT_AWARD_WORK
+from PSET2_DB.OBT.OBT_AWARD_WORK
 sample (50000 rows);
