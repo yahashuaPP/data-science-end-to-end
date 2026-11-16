@@ -30,7 +30,9 @@ OBJETIVO = "label"
 # asi que delataria el label), fwci, identificadores y textos.
 NUMERICAS = ["amount_usd", "duration_days", "authors_count", "cited_by_count"]
 CATEGORICAS = ["funding_type", "award_domain_name", "work_domain_name"]
-YA_LISTAS = ["mismo_campo", "funder_en_pais_autor", "is_global_south"]
+# is_global_south quedo fuera: en la OBT viene vacia en el 100 % de las filas
+# (hallazgo 3 de explorar_proyecto.ipynb), asi que no aporta nada.
+YA_LISTAS = ["mismo_campo", "funder_en_pais_autor"]
 
 COLUMNA_FECHA = "award_start_year"
 PROPORCION_PRUEBA = 0.2

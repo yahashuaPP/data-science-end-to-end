@@ -17,13 +17,13 @@ Los casos son pares (award, investigador). Los dos lados se conocen antes de que
 - Los awards salen de la OBT (`OBT.OBT_AWARD_WORK`), que el pipeline del equipo carga desde OpenAlex. Para recomendar solo interesan los que siguen abiertos.
 - Los investigadores son los autores con publicaciones en la misma OBT: su perfil (campo, país, citas) es el de sus publicaciones.
 
-El número de pares es (awards abiertos) × (investigadores): ⟨número de awards en la muestra⟩ × ⟨número de autores⟩. Es grande, pero finito, y conocido cada noche. Además se puede recortar antes de puntuar: comparar solo pares del mismo dominio (`award_domain_name` = `work_domain_name`) descarta la mayoría de las combinaciones sin perder casi ningún par real. Los modelos de scikit-learn que comparé (logística, bosques, gradient boosting) puntúan cientos de miles de filas por minuto en una laptop, así que el lote entero cabe con holgura en la noche.
+El número de pares es (awards abiertos) × (investigadores). Solo en la muestra de 50 000 pares de la OBT hay 44 044 awards y 33 967 publicaciones distintas: unos 1 500 millones de combinaciones posibles. Es grande, pero finito, y conocido cada noche. Además se puede recortar antes de puntuar: quedarse con los pares en que el país del financiador coincide con el de algún autor descarta la mayoría de las combinaciones y conserva el 87.6 % de los pares reales. Los modelos de scikit-learn que comparé (logística, bosques, gradient boosting) puntúan cientos de miles de filas por minuto en una laptop, así que el lote entero cabe con holgura en la noche.
 
 ## Qué datos necesitan las features en el momento de predecir
 
 | Feature | De dónde sale | ¿Disponible al predecir? |
 |---|---|---|
-| `amount_usd`, `duration_days`, `funding_type`, `award_domain_name`, `is_global_south` | La convocatoria (award) en la OBT | Sí: se publican con la convocatoria |
+| `amount_usd`, `duration_days`, `funding_type`, `award_domain_name` | La convocatoria (award) en la OBT | Sí: se publican con la convocatoria (aunque en OpenAlex suelen venir vacías) |
 | `work_domain_name`, `authors_count`, `cited_by_count` | Las publicaciones del investigador en la OBT | Sí, con el retraso con que OpenAlex las actualiza |
 | `mismo_campo` | `award_field_name` y `work_field_name` | Sí: se calcula con `agregar_features` |
 | `funder_en_pais_autor` | `funder_country_code` y `author_country_codes` | Sí: se calcula con `agregar_features` |

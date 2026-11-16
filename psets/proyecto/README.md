@@ -49,7 +49,7 @@ Las pruebas del pipeline y del servicio corren con `pytest psets/proyecto -v` de
 
 ## Modelo final
 
-⟨modelo⟩, corrida `⟨run_id⟩` del experimento `grantmatch` en MLflow: AUC en prueba ⟨X⟩ (línea base 0.5) y AUC ⟨X⟩ ± ⟨X⟩ en validación cruzada por award. Con el umbral de menor costo (⟨X⟩) recomienda ⟨X⟩ % de los awards pertinentes. El razonamiento completo está en [`docs/decision_modelo.md`](docs/decision_modelo.md).
+Gradient boosting, corrida `cabc6e59ca034fa897c7070f7d58d16b` del experimento `grantmatch` en MLflow: AUC en prueba 0.9018 (línea base 0.5) y AUC 0.8972 ± 0.0048 en validación cruzada por award. Con el umbral de menor costo (0.10) recomienda el 98.2 % de los awards pertinentes. El razonamiento completo está en [`docs/decision_modelo.md`](docs/decision_modelo.md).
 
 ## Cómo correr el servicio
 

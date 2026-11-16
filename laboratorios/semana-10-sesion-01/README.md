@@ -108,15 +108,15 @@ Una fila por modelo, con la métrica de tu proyecto en entrenamiento y en prueba
 
 **¿Alguno de tus modelos se sobreajusta? Muestra la evidencia con números de tu tabla.**
 
-⟨Revisar con la tabla real.⟩ El candidato es el bosque sin límite: AUC de entrenamiento ⟨X⟩ contra ⟨X⟩ en prueba, una brecha de ⟨X⟩, porque cada árbol crece hasta memorizar los pares. La regresión logística casi no tiene brecha (⟨X⟩): con pocas columnas no tiene con qué memorizar.
+Sí, el bosque sin límite: AUC de entrenamiento 0.9995 contra 0.8833 en prueba, una brecha de 0.116, porque cada árbol crece hasta memorizar los pares. Los demás casi no tienen brecha: la regresión logística −0.010 (sale un poco mejor en prueba que en entrenamiento: con pocas columnas no tiene con qué memorizar), el bosque con `max_depth=8` 0.013 y el gradient boosting −0.0002.
 
 **¿Qué regularización aplicaste (o por qué no hizo falta), y qué cambió en la tabla?**
 
-Dos. En la regresión logística probé `C=1` y `C=0.01` (más regularización): ⟨la AUC de prueba casi no cambia, ⟨X⟩ contra ⟨X⟩, porque el modelo no se sobreajustaba⟩. En el bosque limité la profundidad a 8: la brecha bajó de ⟨X⟩ a ⟨X⟩ y la AUC de prueba ⟨subió/se mantuvo⟩ en ⟨X⟩.
+Dos. En la regresión logística probé `C=1` y `C=0.01` (más regularización): la AUC de prueba casi no cambia, 0.8810 contra 0.8791, porque el modelo no se sobreajustaba. En el bosque limité la profundidad a 8: la brecha bajó de 0.116 a 0.013 y la AUC de prueba subió de 0.8833 a 0.8946. Ahí la regularización sí sirvió: el bosque sin límite estaba memorizando.
 
 **¿Cuánto mejora tu mejor modelo a la línea base?**
 
-El mejor en prueba es ⟨modelo⟩, con AUC ⟨X⟩ contra 0.5 de la línea base (⟨+X⟩). En exactitud, ⟨X⟩ contra 0.5. Ojo: los negativos son pares al azar, que son fáciles de distinguir; con negativos más difíciles (awards del mismo campo que no financiaron la publicación) la mejora sería menor.
+El mejor en prueba es el gradient boosting, con AUC 0.9018 contra 0.5 de la línea base (+0.40). En exactitud, 0.842 contra 0.5. Ojo: los negativos son pares al azar, que son fáciles de distinguir; con negativos más difíciles (awards del mismo campo que no financiaron la publicación) la mejora sería menor.
 
 ## Antes de la próxima sesión
 

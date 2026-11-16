@@ -1,0 +1,37 @@
+Cada fila es un par entre una subvencion (award) y una publicacion cientifica. label = 1 si la subvencion financio esa publicacion, 0 si no. Abajo hay 20 pares con su label y 10 pares sin label. Responde solo con 10 numeros (0 o 1), uno por linea, en el mismo orden de los pares sin label, sin texto adicional. amount_usd esta en dolares; author_country_codes son los paises de los autores separados por |.
+
+Pares con label:
+funder_name,funder_country_code,funding_type,award_field_name,amount_usd,work_field_name,author_country_codes,authors_count,label
+National Science Foundation,US,grant,,842372.0,Agricultural and Biological Sciences,AU|CA|CH|US,13,1
+H2020 European Research Council,,fellowship,,,Medicine,,1,0
+National Institutes of Health,US,research,,593808.0,Neuroscience,DE|IT|US,18,1
+Vienna Science and Technology Fund,AT,research,,,Mathematics,AT|FR|IT,4,1
+National Science Foundation,US,grant,,842372.0,Medicine,CN|US,12,0
+Natural Environment Research Council,GB,research,,,Materials Science,CH|DE|FI|GB|NL|SK|US,14,1
+Japan Society for the Promotion of Science,JP,research,,,Medicine,US,3,0
+U.S. Department of Energy,US,grant,,4940000.0,Engineering,US,2,1
+National Science Foundation,US,cooperative_agreement,,37710839.0,Computer Science,DE,3,0
+Science and Technology Facilities Council,GB,research,,,Physics and Astronomy,CN,5,0
+Natural Environment Research Council,GB,research,,,Immunology and Microbiology,US,3,0
+Vetenskapsrådet,SE,fellowship,,,Medicine,US,10,0
+Japan Society for the Promotion of Science,JP,research,,,Engineering,,1,1
+U.S. Department of Energy,US,grant,,4940000.0,"Biochemistry, Genetics and Molecular Biology",US,27,0
+Science and Technology Facilities Council,GB,research,,,Physics and Astronomy,GB,8,1
+National Institutes of Health,US,research,,593808.0,Computer Science,CN|GB|HK|TW|US,6,0
+H2020 European Research Council,,fellowship,,,"Biochemistry, Genetics and Molecular Biology",DE|JP,2,1
+National Science Foundation,US,cooperative_agreement,,37710839.0,Physics and Astronomy,US,1,1
+Vetenskapsrådet,SE,fellowship,,,Engineering,SE,8,1
+Vienna Science and Technology Fund,AT,research,,,Medicine,US,7,0
+
+Pares sin label:
+funder_name,funder_country_code,funding_type,award_field_name,amount_usd,work_field_name,author_country_codes,authors_count
+National Science Foundation,US,fellowship,,150000.0,Engineering,HK,3
+Science and Technology Facilities Council,GB,research,Physics and Astronomy,,Engineering,CN,6
+Science and Technology Facilities Council,GB,research,Physics and Astronomy,,Physics and Astronomy,AU|GB,5
+Schweizerischer Nationalfonds zur Förderung der Wissenschaftlichen Forschung,CH,research,"Biochemistry, Genetics and Molecular Biology",,"Biochemistry, Genetics and Molecular Biology",CH|DE,10
+Schweizerischer Nationalfonds zur Förderung der Wissenschaftlichen Forschung,CH,fellowship,,,"Business, Management and Accounting",BE|CH|DE,3
+European Commission,,research,,,"Biochemistry, Genetics and Molecular Biology",US,16
+Schweizerischer Nationalfonds zur Förderung der Wissenschaftlichen Forschung,CH,research,"Biochemistry, Genetics and Molecular Biology",,Physics and Astronomy,CN|DE|US,3
+National Science Foundation,US,fellowship,,150000.0,Computer Science,CA|US,4
+Schweizerischer Nationalfonds zur Förderung der Wissenschaftlichen Forschung,CH,fellowship,,,Mathematics,US,9
+European Commission,,research,,,Computer Science,NL,2

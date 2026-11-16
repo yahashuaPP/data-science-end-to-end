@@ -133,9 +133,9 @@ python3 pipeline_proyecto.py
 
 Si corre de principio a fin en una terminal nueva, sin el notebook abierto, otro código ya lo puede importar. Anota la forma de los conjuntos de entrenamiento y prueba ya preparados, y la lista de columnas que produce.
 
-Desde `psets/proyecto/modelado/`: año de corte: ⟨X⟩. Entrenamiento: ⟨filas, columnas⟩. Prueba: ⟨filas, columnas⟩. Proporción de pares reales: 0.5 en los dos conjuntos.
+Desde `psets/proyecto/modelado/`: año de corte: 2020 (los awards que empezaron desde 2020 van a prueba). Entrenamiento: (11 884, 32). Prueba: (4 556, 32). Proporción de pares reales: 0.5 en los dos conjuntos. Son 16 440 pares y no 100 000 porque solo el 16.4 % de los awards de la OBT trae año de inicio, y sin año no se puede dividir por fecha.
 
-Columnas que produce: las 4 numéricas escaladas (`numericas__amount_usd`, `numericas__duration_days`, `numericas__authors_count`, `numericas__cited_by_count`), una columna one-hot por cada valor de `funding_type`, `award_domain_name` y `work_domain_name` (⟨X⟩ en total), y las 3 ya listas (`ya_listas__mismo_campo`, `ya_listas__funder_en_pais_autor`, `ya_listas__is_global_south`).
+Columnas que produce: las 4 numéricas escaladas (`numericas__amount_usd`, `numericas__duration_days`, `numericas__authors_count`, `numericas__cited_by_count`), una columna one-hot por cada valor de `funding_type`, `award_domain_name` y `work_domain_name` (26 en total) y las 2 ya listas (`ya_listas__mismo_campo`, `ya_listas__funder_en_pais_autor`). `is_global_south` salió del modelo: en la OBT viene vacía en el 100 % de las filas.
 
 ## Antes de la próxima sesión
 

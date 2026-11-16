@@ -1,0 +1,7 @@
+modelo,auc_entrenamiento,auc_prueba,brecha,exactitud_prueba,segundos
+linea base,0.5,0.5,0.0,0.5,0.024
+logistica C=1,0.871,0.881,-0.01,0.8349,0.158
+logistica C=0.01,0.8673,0.8791,-0.0118,0.8325,0.034
+bosque sin limite,0.9995,0.8833,0.1161,0.8358,1.109
+bosque max_depth=8,0.9081,0.8946,0.0134,0.8413,0.547
+gradient boosting,0.9016,0.9018,-0.0002,0.842,1.054

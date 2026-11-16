@@ -125,7 +125,7 @@ La tabla de corridas de tu experimento, exportada con `mlflow.search_runs(...).t
 
 **¿Qué modelo elegiste como final? Escribe su `run_id` y los números del registro que sostienen la decisión.**
 
-⟨Completar al correr [`experimentos_proyecto.ipynb`](../../psets/proyecto/modelado/experimentos_proyecto.ipynb) con los datos reales.⟩ Elegí ⟨modelo⟩, corrida `⟨run_id⟩`, con AUC de prueba ⟨X⟩ contra ⟨X⟩ del segundo (⟨modelo⟩) y 0.5 de la línea base. La AUC de entrenamiento es ⟨X⟩ (brecha ⟨X⟩), y entrena en ⟨X⟩ s. Al cargarlo desde el registro reproduce exactamente la AUC registrada.
+Elegí el gradient boosting, corrida `cabc6e59ca034fa897c7070f7d58d16b` del experimento `grantmatch`, con AUC de prueba 0.9018 contra 0.8946 del segundo (bosque con `max_depth=8`) y 0.5 de la línea base. La AUC de entrenamiento es 0.9016 (brecha −0.0002: no se sobreajusta), y entrena en 1.05 s. Las 7 corridas tienen el mismo año de corte (2020) y la misma huella de datos (`acdaa7713ac3`). Al cargarlo desde el registro reproduce exactamente la AUC registrada.
 
 **Si otra persona clona tu repositorio, ¿qué necesita para obtener exactamente el mismo número? ¿Qué de eso quedó registrado en MLflow y qué no?**
 

@@ -121,15 +121,15 @@ Por grupo, con `award_key` como grupo (`GroupKFold`), en [`validacion_proyecto.i
 
 **¿Cambió la conclusión entre el esquema al azar y el tuyo? Muestra los números.**
 
-⟨Completar con la tabla de `validacion_proyecto.csv`.⟩ Por award, el modelo final da AUC ⟨X⟩ ± ⟨X⟩; al azar, ⟨X⟩ ± ⟨X⟩. ⟨Si al azar sale más alta: el esquema al azar sobreestima porque el modelo ve el mismo award en entrenamiento y en validación. Si salen casi iguales: con negativos al azar, las features que comparan los dos lados (`mismo_campo`, `funder_en_pais_autor`) no dependen de qué award es, así que mezclar awards no filtra información.⟩
+No cambió. Por award, el modelo final da AUC 0.8972 ± 0.0048; al azar, 0.8968 ± 0.0042, prácticamente igual. Con negativos al azar, las features que comparan los dos lados (`mismo_campo`, `funder_en_pais_autor`) no dependen de qué award es, así que mezclar awards no filtra información. Además, casi cada award aparece una sola vez (7 795 awards en 8 220 pares reales), así que hay poco que filtrar. Igual uso el esquema por award, porque es el que corresponde a recomendar convocatorias nuevas.
 
 **¿La diferencia entre tu modelo final y el segundo es mayor que la variación entre pliegues? ¿Sigues eligiendo el mismo?**
 
-⟨Completar.⟩ El final (⟨modelo⟩) y el segundo (⟨modelo⟩) difieren en ⟨X⟩ de AUC por award, y la desviación entre pliegues es ⟨X⟩. ⟨Si la diferencia es menor que la desviación: no se distinguen con estos datos, y me quedo con el más simple y rápido de los dos. Si es mayor: me quedo con el final.⟩
+No. El final (gradient boosting, 0.8972) y el segundo (bosque con `max_depth=8`, 0.8934) difieren en 0.0038 de AUC por award, y la desviación entre pliegues llega a 0.0048: con estos datos no se distinguen. Sigo con el gradient boosting porque, entre dos empatados, es el más simple de servir: su modelo guardado pesa 172 KB contra 3.8 MB del bosque (100 árboles de profundidad 3 contra 200 de profundidad 8), predice más rápido, y la diferencia en entrenamiento (1.05 s contra 0.52 s) no importa para un lote nocturno.
 
 **¿Qué métrica del negocio elegiste, y qué dice que no decía la anterior?**
 
-El costo esperado con un umbral de decisión, y el recall. En GrantMatch el error caro es el falso negativo: no recomendar un award que sí era para el investigador, que puede perder un financiamiento. El falso positivo le cuesta unos minutos de leer y descartar una convocatoria. Lo aproximé como 10 a 1. La AUC dice qué tan bien ordena el modelo los pares, pero no cuántos awards pertinentes se pierden con el umbral que se usa ni cuánto cuesta. Con 0.5, el costo es ⟨X⟩ y el recall ⟨X⟩; con el umbral de menor costo, ⟨X⟩, el costo baja a ⟨X⟩ y el recall sube a ⟨X⟩.
+El costo esperado con un umbral de decisión, y el recall. En GrantMatch el error caro es el falso negativo: no recomendar un award que sí era para el investigador, que puede perder un financiamiento (la mediana de `amount_usd` en la muestra es de 562 058 dólares). El falso positivo le cuesta unos minutos de leer y descartar una convocatoria. Lo aproximé como 10 a 1. La AUC dice qué tan bien ordena el modelo los pares, pero no cuántos awards pertinentes se pierden con el umbral que se usa ni cuánto cuesta. Con 0.5, el costo es 13 519 y el recall 0.853 (1 209 awards pertinentes perdidos); con el umbral de menor costo, 0.10, el costo baja a 7 331 y el recall sube a 0.982 (144 perdidos), a cambio de 5 891 recomendaciones de más.
 
 ## Antes de la próxima sesión
 
