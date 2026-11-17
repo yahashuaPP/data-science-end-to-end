@@ -130,7 +130,20 @@ Recibe el par como lo conoce quien llama: de la convocatoria, `award_field_name`
 
 **Pega una petición a tu servicio corriendo en el contenedor, y su respuesta:**
 
-_(tu respuesta)_
+Contenedor construido desde `psets/proyecto/` con `docker build -f servicio/Dockerfile -t grantmatch-servicio .` y levantado con `docker run -p 8000:8000 grantmatch-servicio` (Docker Desktop en Windows). Petición desde PowerShell:
+
+```
+$par = @{ award_field_name="Physics and Astronomy"; funder_country_code="US"; amount_usd=250000; duration_days=1095; funding_type="grant"; work_field_name="Physics and Astronomy"; author_country_codes=@("US","DE"); authors_count=4; cited_by_count=12 } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://localhost:8000/predecir -ContentType "application/json" -Body $par
+```
+
+Respuesta:
+
+```
+{"id_prediccion": "056c01c4b66f418b9740cc82d9255a0a", "probabilidad_financiamiento": 0.885, "recomendar": true, "version_modelo": "1"}
+```
+
+El modelo dentro de la imagen es la versión 1 de `grantmatch` en el registro de MLflow (el gradient boosting de 100 árboles); el contenedor no consulta MLflow: la versión viaja en `servicio/modelo_version.txt`. Al construirla por primera vez falló al arrancar (`ModuleNotFoundError: No module named 'servicio.deriva'`) porque el Dockerfile no copiaba `servicio/deriva.py`; las pruebas no lo vieron porque corren fuera del contenedor. Lo agregué al `COPY` y funcionó.
 
 ## Antes de la próxima sesión
 

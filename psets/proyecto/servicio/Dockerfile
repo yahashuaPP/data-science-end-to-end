@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r servicio/requirements.txt
 
 COPY modelado/pipeline_proyecto.py modelado/pipeline_proyecto.py
 COPY monitoreo/referencia_deriva.json monitoreo/referencia_deriva.json
-COPY servicio/api.py servicio/modelo.joblib servicio/modelo_version.txt servicio/
+COPY servicio/api.py servicio/deriva.py servicio/modelo.joblib servicio/modelo_version.txt servicio/
 EXPOSE 8000
 
 # 0.0.0.0: escucha en todas las interfaces del contenedor, no solo en su
