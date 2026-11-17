@@ -56,7 +56,7 @@ def test_mismo_campo_calculado_a_mano():
     })
     # Mismo campo, campo distinto, y los dos vacios: dos NaN no son "el mismo
     # campo", porque no se sabe el campo del award.
-    assert agregar_features(pares)["mismo_campo"].tolist() == [1, 1, 0]
+    assert agregar_features(pares)["mismo_campo"].tolist() == [1, 0, 0]
 
 
 def test_funder_en_pais_autor_calculado_a_mano():
