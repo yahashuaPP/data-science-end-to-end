@@ -48,3 +48,37 @@ Servir **todo** en línea costaría lo siguiente:
 Todo eso compraría una frescura que los datos no tienen.
 
 El lote también ahorra cómputo, porque el recorte por dominio evita puntuar pares imposibles. Su costo propio está anotado: predicciones que nadie llega a mirar (investigadores que no abren su lista), que el artículo de la lectura señala como la desventaja típica del lote.
+
+## Versionado y registro
+
+**El modelo en el registro.** El modelo vive en el registro de modelos de MLflow como **`grantmatch`**. Cada vez que se entrena con `python -m servicio.registrar_modelo` se crea una versión nueva, con su corrida, sus parámetros (número de árboles, año de corte, huella de los datos) y su AUC de prueba. Ninguna versión reemplaza a otra.
+
+| Versión | Modelo | AUC de prueba | Alias |
+|---|---|---|---|
+| 1 | Gradient boosting, 100 árboles (el modelo final del PSet 3) | 0.9018 | `produccion` |
+| 2 | Gradient boosting, 200 árboles | 0.9010 | — |
+
+**Criterio para mover el alias.** Una versión nueva pasa a `produccion` solo si se cumplen tres condiciones:
+- su AUC de prueba es mayor que la de la versión en producción, medida con la misma división (año de corte) y la misma huella de datos, que quedan como parámetros de la corrida;
+- `pytest psets/proyecto` pasa;
+- con el umbral de 0.10 no pierde recall en la validación por award.
+
+Por eso la versión 2 no pasó: con el doble de árboles da 0.0008 menos de AUC.
+
+**Quién decide y dónde queda.** Lo decide quien mantiene el modelo, a mano, con `python -m servicio.promover <versión>`. El script deja en la versión dos etiquetas:
+- `promovida_por`: quién la promovió;
+- `reemplaza_a`: qué versión había antes.
+
+Así la decisión queda en el registro y no en la memoria de alguien.
+
+**Cómo sabe el servicio qué versión sirve.** `python -m servicio.exportar_modelo` exporta `grantmatch@produccion` a `servicio/modelo.joblib` y guarda su número en `servicio/modelo_version.txt`. La imagen lleva los dos archivos adentro, así que el contenedor no necesita llegar a MLflow. `/salud` y cada predicción responden `version_modelo`.
+
+**Volver a la versión anterior:**
+
+1. `python -m servicio.promover <versión anterior>`. El script imprime cuál era.
+2. `python -m servicio.exportar_modelo`.
+3. Reconstruir la imagen: `docker build -f servicio/Dockerfile -t grantmatch-servicio .`
+4. Reiniciar el contenedor.
+
+No hay que reentrenar nada: la versión anterior sigue en el registro.
+

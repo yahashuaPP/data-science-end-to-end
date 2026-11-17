@@ -38,7 +38,7 @@ Todos los candidatos usan la misma preparación, la misma división y la misma m
 
 **Sobreajuste.** El bosque sin límite memoriza: 0.999 en entrenamiento contra 0.883 en prueba. Limitar la profundidad a 8 baja la brecha a 0.013 y sube la AUC de prueba a 0.895. En la logística, más regularización (C=0.01) casi no cambia la AUC de prueba (0.881 contra 0.879): no estaba sobreajustada. El gradient boosting tiene la misma AUC en entrenamiento y en prueba.
 
-**El LLM.** En 10 pares de prueba con 20 ejemplos, el LLM acertó ⟨X⟩ de 10, contra ⟨X⟩ del gradient boosting. Evaluar 10 000 pares costaría unos ⟨X⟩ dólares y no da una probabilidad para ordenar recomendaciones, así que no es un candidato para producción.
+**El LLM.** Pasé el mismo prompt (10 pares de prueba, 20 de entrenamiento como ejemplos) a cuatro LLM, cada uno en una conversación nueva. Acertaron 10 de 10 (Claude Sonnet 5.5), 8 (Gemini), 6 (GPT) y 3 (Claude Haiku 5.5), contra 9 del gradient boosting y 9 de la red. Con 10 pares el mejor LLM no se distingue del gradient boosting, y entre LLM el resultado va de 3 a 10 con el mismo prompt. Evaluar 10 000 pares costaría unos 3.4 dólares (a 4 dólares por millón de tokens de entrada) y no da una probabilidad para ordenar recomendaciones, así que no es un candidato para producción.
 
 ## 3. ¿La diferencia con el segundo es real?
 

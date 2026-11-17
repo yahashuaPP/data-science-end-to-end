@@ -55,12 +55,15 @@ Gradient boosting, corrida `cabc6e59ca034fa897c7070f7d58d16b` del experimento `g
 
 El modelo se sirve por lotes cada noche (la razón está en [`docs/despliegue.md`](docs/despliegue.md)); `servicio/` es la API con que otro sistema le pide una predicción suelta al mismo modelo. Todo se corre desde `psets/proyecto/`.
 
-**1. Exportar el modelo final desde MLflow.** Con el servidor de MLflow levantado (puerto 5050), el script busca en el experimento `grantmatch` la corrida marcada con `candidato` = `final` y la guarda como `servicio/modelo.joblib`, junto con `servicio/modelo_info.json` (su `run_id`). Ninguno de los dos se sube al repositorio.
+**1. Registrar, promover y exportar el modelo.** Con el servidor de MLflow levantado (puerto 5050), el modelo vive en el registro como `grantmatch`, con una versión por entrenamiento; el servicio usa la que tiene el alias `produccion` (detalle en [`docs/despliegue.md`](docs/despliegue.md#versionado-y-registro)).
 
 ```
-python servicio/exportar_modelo.py            # la corrida final
-python servicio/exportar_modelo.py <run_id>   # otra corrida, por ejemplo para volver a la anterior
+python -m servicio.registrar_modelo        # entrena y registra una versión nueva (100 árboles)
+python -m servicio.promover 1              # pone el alias produccion en la versión 1
+python -m servicio.exportar_modelo         # guarda grantmatch@produccion en servicio/modelo.joblib y su número en servicio/modelo_version.txt
 ```
+
+Ni `modelo.joblib` ni `modelo_version.txt` se suben al repositorio: se regeneran con `exportar_modelo`.
 
 **2. Probarlo sin contenedor.**
 
@@ -83,10 +86,12 @@ docker run -p 8000:8000 grantmatch-servicio
 curl -X POST localhost:8000/predecir -H "Content-Type: application/json" -d '{"award_field_name": "Physics and Astronomy", "funder_country_code": "US", "amount_usd": 250000, "duration_days": 1095, "funding_type": "grant", "award_domain_name": "Physical Sciences", "is_global_south": false, "work_field_name": "Physics and Astronomy", "author_country_codes": ["US", "DE"], "work_domain_name": "Physical Sciences", "authors_count": 4, "cited_by_count": 12}'
 ```
 
-Respuesta (la probabilidad depende del modelo exportado):
+Respuesta, con la versión 1 de `grantmatch` (servida con uvicorn):
 
 ```
-{"probabilidad_financiamiento": ⟨X⟩, "recomendar": ⟨true/false⟩, "version_modelo": "⟨run_id⟩"}
+{"probabilidad_financiamiento": 0.9314, "recomendar": true, "version_modelo": "1"}
 ```
 
-`recomendar` es `true` cuando la probabilidad alcanza el umbral de menor costo de la validación (variable de entorno `UMBRAL`, 0.10 por defecto). Un par sin `award_field_name`, `funder_country_code`, `work_field_name` o `author_country_codes` se rechaza con 422: sin ellos las dos features saldrían 0 sin dar error.
+`version_modelo` es el número de la versión del registro que calculó la predicción; `/salud` también lo responde.
+
+`recomendar` es `true` cuando la probabilidad alcanza el umbral de menor costo de la validación (variable de entorno `UMBRAL`, 0.10 por defecto). Un par sin `work_field_name` o `author_country_codes` se rechaza con 422: sin ellos las dos features saldrían 0 sin dar error. El campo del award y el país del financiador pueden faltar, porque en OpenAlex suelen faltar y el modelo se entrenó así.

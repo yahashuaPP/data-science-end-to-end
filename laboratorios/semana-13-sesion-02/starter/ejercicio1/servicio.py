@@ -53,7 +53,14 @@ class Metricas:
         # (cuantas respondieron 500 o mas), y "latencia_p50_ms" y
         # "latencia_p95_ms" (np.percentile, redondeadas a 2 decimales).
         # Sin peticiones, las dos latencias son None.
-        return {}
+        hay = len(self.latencias_ms) > 0
+        return {
+            "peticiones": len(self.codigos),
+            "errores_validacion": sum(1 for c in self.codigos if c == 422),
+            "errores_servidor": sum(1 for c in self.codigos if c >= 500),
+            "latencia_p50_ms": round(float(np.percentile(self.latencias_ms, 50)), 2) if hay else None,
+            "latencia_p95_ms": round(float(np.percentile(self.latencias_ms, 95)), 2) if hay else None,
+        }
 
 
 metricas = Metricas()
@@ -69,7 +76,10 @@ async def medir(request: Request, call_next):
     # TODO 1: toma el tiempo antes y despues de call_next con time.perf_counter(),
     # y registra en metricas la latencia en milisegundos y el codigo de la
     # respuesta (respuesta.status_code).
-    return await call_next(request)
+    inicio = time.perf_counter()
+    respuesta = await call_next(request)
+    metricas.registrar((time.perf_counter() - inicio) * 1000, respuesta.status_code)
+    return respuesta
 
 
 class Viaje(BaseModel):
@@ -101,4 +111,12 @@ def predecir(viaje: Viaje):
     # json.dumps de un diccionario con id_prediccion, "momento"
     # (datetime.now().isoformat()), version_modelo, los campos del viaje
     # (viaje.model_dump(mode="json")) y "tarifa_estimada".
+    with open(RUTA_REGISTRO, "a") as archivo:
+        archivo.write(json.dumps({
+            "id_prediccion": id_prediccion,
+            "momento": datetime.now().isoformat(),
+            "version_modelo": version_modelo,
+            **viaje.model_dump(mode="json"),
+            "tarifa_estimada": tarifa,
+        }) + "\n")
     return {"id_prediccion": id_prediccion, "tarifa_estimada": tarifa, "version_modelo": version_modelo}

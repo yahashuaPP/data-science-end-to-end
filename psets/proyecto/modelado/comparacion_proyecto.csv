@@ -1,0 +1,7 @@
+opcion,auc_prueba,segundos,parametros,exactitud_10_pares,costo_10000_pares_usd,explicable
+gradient boosting,0.9018,1.309,,0.9,0.0,importancia de columnas
+red neuronal,0.8916,3.681,2177.0,0.9,0.0,no (pesos sin significado)
+LLM claude-haiku-5-5,,0.0,,0.3,3.38,"texto, sin garantia de fidelidad"
+LLM claude-sonnet-5-5,,0.0,,1.0,3.38,"texto, sin garantia de fidelidad"
+LLM gemini,,0.0,,0.8,3.38,"texto, sin garantia de fidelidad"
+LLM gpt,,0.0,,0.6,3.38,"texto, sin garantia de fidelidad"

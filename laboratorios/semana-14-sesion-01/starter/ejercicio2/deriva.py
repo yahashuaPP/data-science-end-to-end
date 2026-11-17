@@ -20,7 +20,11 @@ def proporciones_numericas(valores, cortes):
     # TODO 1: quita los None, cuenta con np.histogram usando como bins
     # [-np.inf] + cortes + [np.inf], y divide por el total. Si no queda
     # ningun valor, devuelve un arreglo de ceros del largo correcto.
-    return np.zeros(len(cortes) + 1)
+    numeros = [v for v in valores if v is not None]
+    if not numeros:
+        return np.zeros(len(cortes) + 1)
+    conteo, _ = np.histogram(numeros, bins=[-np.inf] + list(cortes) + [np.inf])
+    return conteo / len(numeros)
 
 
 def proporciones_categoricas(valores, categorias):
@@ -29,14 +33,18 @@ def proporciones_categoricas(valores, categorias):
     casilla, pero si en el total."""
     # TODO 2: cuenta cuantos valores hay de cada categoria y divide por la
     # cantidad total de valores.
-    return np.zeros(len(categorias))
+    if not valores:
+        return np.zeros(len(categorias))
+    return np.array([sum(1 for v in valores if v == c) for c in categorias]) / len(valores)
 
 
 def psi(referencia, actual):
     """El PSI entre dos listas de proporciones, con MINIMO en las casillas
     vacias, como en el notebook."""
     # TODO 3: la misma funcion del notebook.
-    return 0.0
+    r = np.clip(np.asarray(referencia, dtype=float), MINIMO, None)
+    a = np.clip(np.asarray(actual, dtype=float), MINIMO, None)
+    return float(np.sum((a - r) * np.log(a / r)))
 
 
 class MonitorDeDeriva:
@@ -52,6 +60,10 @@ class MonitorDeDeriva:
         deja solo los ultimos `ventana`."""
         # Agrega la distancia (aunque sea None) y la zona del viaje, y si
         # alguna lista pasa de `ventana` elementos, quita los mas viejos.
+        self.distancias.append(viaje.get("distancia_km"))
+        self.zonas.append(viaje.get("zona_origen"))
+        self.distancias = self.distancias[-self.ventana:]
+        self.zonas = self.zonas[-self.ventana:]
 
     def estado(self):
         """Un diccionario con "viajes_en_ventana", "psi" (un diccionario con
@@ -62,4 +74,15 @@ class MonitorDeDeriva:
         # Calcula los dos PSI contra self.referencia (sus "proporciones",
         # con los "cortes" o las "categorias" de cada feature) y arma el
         # diccionario.
-        return {"viajes_en_ventana": len(self.zonas), "psi": {}, "alerta": False}
+        if not self.zonas:
+            return {"viajes_en_ventana": 0, "psi": {}, "alerta": False}
+        ref_d, ref_z = self.referencia["distancia_km"], self.referencia["zona_origen"]
+        valores = {
+            "distancia_km": round(psi(ref_d["proporciones"],
+                                      proporciones_numericas(self.distancias, ref_d["cortes"])), 4),
+            "zona_origen": round(psi(ref_z["proporciones"],
+                                     proporciones_categoricas(self.zonas, ref_z["categorias"])), 4),
+        }
+        llena = len(self.zonas) >= self.ventana
+        return {"viajes_en_ventana": len(self.zonas), "psi": valores,
+                "alerta": bool(llena and max(valores.values()) > self.umbral)}

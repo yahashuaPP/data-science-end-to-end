@@ -16,17 +16,17 @@ A partir de la lectura previa:
 
 **Según el artículo, ¿qué es la gobernanza de modelos, y qué componentes la forman?**
 
-_(tu respuesta)_
+Es el proceso de punta a punta con el que una organización establece, aplica y mantiene controles sobre cómo se usan sus modelos, para que funcionen como se espera, cumplan las normas y den resultados confiables con el tiempo. Nació en finanzas y ahora se aplica también a IA y aprendizaje automático. El artículo la forma con cinco componentes: (1) desarrollo y documentación del modelo (objetivo, datos de entrenamiento, metodología, supuestos y salidas esperadas); (2) un inventario central de modelos; (3) validación y back-testing (probar con datos históricos, sensibilidad, y en ML sesgo, robustez y sobreajuste); (4) despliegue y monitoreo continuo del desempeño y la deriva, con los controles metidos en el pipeline de MLOps / CI/CD; y (5) roles, responsabilidades y flujos de trabajo, con responsables claros entre científicos de datos, riesgo, negocio, cumplimiento y auditoría.
 
 **El artículo pide un inventario central de modelos. ¿Qué datos tendría que tener ese inventario sobre cada modelo, y para qué los necesita alguien que no lo entrenó?**
 
-_(tu respuesta)_
+Para cada modelo: para qué sirve, quién es su dueño, con qué metodología se construyó y en qué etapa de su ciclo de vida está (en desarrollo, en producción, retirado), incluidos los modelos escondidos en hojas de cálculo. A eso yo le sumaría lo que el registro de MLflow guarda solo: la versión, la corrida que la produjo (datos, hiperparámetros y métricas) y qué versión está en producción. Quien no lo entrenó lo necesita para saber a quién preguntar, si el modelo sigue vigente, con qué datos y contra qué se validó, y así evaluar su riesgo y decidir si lo usa, lo cambia o lo retira sin tener que reconstruir la historia.
 
 ## Pregunta de apertura
 
 La sesión pasada, tu servicio cargaba `modelo.joblib`. Si la semana que viene reentrenas y vuelves a exportar, el archivo se reemplaza. Si mañana un usuario reclama por una predicción de hoy, ¿cómo sabrías qué modelo la produjo? ¿Y cómo volverías al modelo anterior si el nuevo resulta peor?
 
-_(tu respuesta)_
+Con un solo archivo que se sobrescribe, no lo sabría: el `modelo.joblib` de hoy ya no existe mañana. Hace falta que cada predicción diga qué modelo la produjo (una versión o un `run_id` en la respuesta y en el registro de predicciones) y que los modelos anteriores no se borren. Con un registro de modelos cada entrenamiento es una versión numerada que apunta a su corrida (datos, parámetros y métricas): con la versión que quedó en la predicción encuentro el modelo exacto. Para volver atrás, en vez de reentrenar, muevo el alias de producción a la versión anterior, vuelvo a exportarla y reinicio el servicio.
 
 ## Ejercicio 1: la tarifa, con registro
 
@@ -43,37 +43,37 @@ pytest -v
 
 **Respuesta 1 (antes de los TODO):** `registrar_modelo.py` dice `Version None`, `versiones.py` no imprime nada y `promover.py` termina con un error. ¿Qué dice el error, y qué te dice sobre lo que hay en el registro?
 
-_(tu respuesta)_
+`promover.py` termina con `RestException: INVALID_PARAMETER_VALUE: Registered model alias produccion not found`. Dice que en el registro no hay nada con ese alias, porque no hay nada en absoluto: `registrar_modelo.py` entrenó la red y guardó su MAE (1.1695) en una corrida, pero sin el `TODO 1` nunca registró el modelo, así que no existe el modelo `tarifa-taxis` ni ninguna versión (por eso `Version None` y `versiones.py` no imprime nada). Una corrida con métricas no es lo mismo que un modelo registrado.
 
 **Respuesta 2 (TODO 1):** registra dos versiones, una con 64 neuronas y otra con 8. Antes de correr `versiones.py`, ¿cuántas versiones esperas ver, y qué pasó con la primera cuando registraste la segunda?
 
-_(tu respuesta)_
+Dos versiones: la 1 (64 neuronas, MAE 1.1695) y la 2 (8 neuronas, MAE 1.1877). A la primera no le pasó nada: registrar la segunda no la reemplaza ni la borra, solo agrega una versión con el número siguiente, cada una con su corrida y su métrica. Ninguna tiene alias todavía.
 
 **Respuesta 3 (TODO 2 y 3):** pon `produccion` en la versión 2 y levanta el servicio (`uvicorn servicio:app --port 8000`). ¿Qué versión dice `/salud`? Ahora mueve el alias a la versión 1 sin reiniciar uvicorn: ¿qué versión responde el servicio? ¿Y después de reiniciarlo?
 
-_(tu respuesta)_
+Con `produccion` en la versión 2, `/salud` dice `"version_modelo": "2"`. Al mover el alias a la versión 1 sin reiniciar, el servicio sigue respondiendo con la versión 2: el modelo se carga una sola vez, al arrancar, y queda en memoria. Recién después de reiniciar uvicorn `/salud` dice `"1"`. Mover el alias no cambia nada en un servicio que ya está corriendo: hay que reiniciarlo (o redesplegarlo).
 
 **Respuesta 4 (TODO 4):** las pruebas usan un modelo de prueba y una versión inventada, `"7"`, sin servidor de MLflow. ¿Qué prueba falla antes del `TODO 4`, y qué comprueba que el `/salud` no comprobaba?
 
-_(tu respuesta)_
+Falla `test_cada_prediccion_dice_que_version_la_calculo`: la respuesta de `/predecir` solo tenía la tarifa, sin `version_modelo`. Comprueba que cada predicción lleva la versión que la calculó, mientras que `/salud` solo dice qué versión está cargada ahora. Si entre una petición y otra se reinicia el servicio con otro modelo, `/salud` ya no dice nada sobre las predicciones de antes: la versión tiene que viajar con cada tarifa para poder rastrearla después.
 
 **Lo que respondió el servicio:**
 
-_(anota la tarifa del viaje de Midtown al aeropuerto con la versión 2 y con la versión 1, y qué dijo `version_modelo` en cada caso)_
+Viaje de Midtown a JFK Airport (2026-11-05 08:30, 26.4 km, 2 pasajeros, tarjeta): con la versión 2 (8 neuronas), `{"tarifa_estimada": 69.98, "version_modelo": "2"}`; después de mover el alias a la 1 sin reiniciar, la misma respuesta con `"2"`; y después de reiniciar, con la versión 1 (64 neuronas), `{"tarifa_estimada": 70.07, "version_modelo": "1"}`. `pytest -v`: 2 passed.
 
 ## Durante el ConcepTest
 
 **Tu voto, antes de discutir en pareja** (A, B, C o D):
 
-_(tu voto)_
+No hubo votación: en esta sesión no se hizo el ConcepTest en clase.
 
 **Tu razonamiento:**
 
-_(tu respuesta)_
+No aplica (sin ConcepTest en clase).
 
 **Después de discutir en pareja, ¿cambiaste de voto? ¿Por qué?**
 
-_(tu respuesta)_
+No aplica (sin ConcepTest en clase).
 
 ## Ejercicio 2: el ciclo de vida del modelo de fraude
 
@@ -81,19 +81,19 @@ Solo o en pareja. Carpeta: [`starter/ejercicio2/`](./starter/ejercicio2/). El eq
 
 **Respuesta 1:** ¿qué versión quedó en producción, y por qué no la última que se registró?
 
-_(tu respuesta)_
+Quedó en producción la versión 2, el gradient boosting (recall 0.661, precisión 0.429 al umbral de 0.10). La versión 1, la logística (recall 0.644), entró primero porque no había ninguna; el gradient boosting la superó en recall y se llevó el alias. La última, la 3 (logística muy regularizada), tiene recall 0.102: detecta muchos menos fraudes, así que la regla la rechazó. Registrar una versión no la pone en producción: solo entra si mejora a la que está.
 
 **Respuesta 2:** la regresión logística muy regularizada tiene la mayor precisión de las tres. ¿Por qué la regla la rechazó? ¿Qué tendría que cambiar en la regla si la empresa decide que las falsas alarmas cuestan más que los fraudes no detectados?
 
-_(tu respuesta)_
+Porque la regla compara solo el recall, y la logística con C=0.001 detecta apenas el 10.2 % de los fraudes: su precisión es alta (0.667) porque casi no da alarmas, pero deja pasar casi todo. Si las falsas alarmas costaran más que los fraudes no detectados, la regla tendría que comparar la precisión, o mejor, el costo esperado con los costos de cada error (por ejemplo, costo = falsos negativos × costo de un fraude + falsos positivos × costo de una revisión), y promover la versión con menor costo. Probablemente también habría que subir el umbral de 0.10.
 
 **Respuesta 3:** abre el modelo `fraude-pagos` en la interfaz de MLflow (puerto 5050, pestaña **Models**). Si dentro de un mes alguien pregunta por qué la versión 3 nunca llegó a producción, ¿dónde está la respuesta?
 
-_(tu respuesta)_
+En el registro mismo: en la versión 3 de `fraude-pagos` (pestaña Models), sus etiquetas dicen `validacion` = `rechazada` y `comparada_con` = `2`, y su corrida (enlazada desde la versión) guarda las métricas: recall 0.102 contra 0.661 de la versión 2. Con eso cualquiera reconstruye la decisión sin preguntarle a quien la tomó.
 
 **Si terminas antes:** vuelve a correr `python ciclo_fraude.py`. ¿Cuántas versiones hay ahora, y cuál está en producción? ¿Es lo que esperabas?
 
-_(tu respuesta)_
+Hay 6 versiones: la segunda corrida registró otras tres (4, 5 y 6) con los mismos modelos. En producción sigue la versión 2. Es lo esperado: la regla pide un recall estrictamente mayor, y la versión 5 (el mismo gradient boosting) empata con la 2 (0.661), así que queda `rechazada`. Igual que la 4 y la 6. Volver a entrenar lo mismo no mueve el alias, pero llena el registro de versiones repetidas: en la práctica conviene no registrar un candidato que no cambia nada.
 
 ## Ejercicio 3: el registro de tu proyecto
 
@@ -119,11 +119,11 @@ Agrega la sección **Versionado y registro**: cómo se llama tu modelo en el reg
 
 **¿Con qué criterio decides que una versión nueva de tu modelo pasa a producción? ¿Quién lo decide en tu proyecto, y dónde queda registrada la decisión?**
 
-_(tu respuesta)_
+Una versión nueva de `grantmatch` pasa a producción solo si su AUC de prueba es mayor que la de la versión en producción con la misma división (año de corte 2020) y la misma huella de datos, que quedan como parámetros de la corrida; si `pytest psets/proyecto` pasa; y si con el umbral de 0.10 no pierde recall en la validación por award. Lo decido yo, a mano, con `python -m servicio.promover <versión>`, que deja en la versión las etiquetas `promovida_por` y `reemplaza_a`: la decisión queda en el registro de MLflow, y el criterio en `docs/despliegue.md`. Por eso la versión 2 (200 árboles, AUC 0.9010) no pasó y en producción está la 1 (100 árboles, AUC 0.9018).
 
 **Si tu servicio corre en un contenedor sin acceso al servidor de MLflow, ¿cómo sabe qué versión está sirviendo?**
 
-_(tu respuesta)_
+Porque la versión viaja con el modelo: `python -m servicio.exportar_modelo` exporta `grantmatch@produccion` a `servicio/modelo.joblib` y escribe su número en `servicio/modelo_version.txt`, y el Dockerfile copia los dos archivos a la imagen. Al arrancar, el servicio lee ese número y lo responde en `/salud` y en cada predicción (`"version_modelo": "1"`). El contenedor nunca le pregunta a MLflow; si se quiere otra versión, se exporta de nuevo y se reconstruye la imagen.
 
 ## Antes de la próxima sesión
 
@@ -131,4 +131,4 @@ _(tu respuesta)_
 
 Tu servicio responde en unos milisegundos, `/salud` dice que todo está bien, y cada tarifa dice qué versión la calculó. ¿Qué le pasa a un modelo que responde rápido pero cada vez peor? ¿Cómo te enterarías?
 
-_(tu respuesta)_
+Que falla en silencio: sigue respondiendo rápido y con código 200, pero sus predicciones se alejan de la realidad, porque los datos de producción cambian (deriva de datos o de concepto) y el modelo quedó con lo que vio al entrenar. Ni la latencia ni `/salud` lo detectan, porque miden el servicio, no la calidad. Me enteraría comparando las predicciones con lo que pasó de verdad cuando llega la etiqueta (la tarifa cobrada, el contracargo de un fraude), con un retraso; y mientras tanto, con señales indirectas: la deriva de las features de entrada y de la distribución de las predicciones respecto al entrenamiento (con PSI o KS), y la calidad de los datos (columnas vacías o fuera de rango). Todo con alertas, no mirando a mano.

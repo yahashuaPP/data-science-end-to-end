@@ -86,7 +86,7 @@ Usé Claude Opus 5.5.
 
 **Respuesta 2:** corre el mismo prompt otra vez, en una conversación nueva. ¿Te dio los mismos 20 números? ¿Qué problema le trae eso a una app que le cobra al pasajero?
 
-⟨Completar con la segunda corrida.⟩ En una conversación nueva el LLM ⟨no dio⟩ los mismos 20 números: ⟨X⟩ de 20 cambiaron, hasta ⟨X⟩ dólares en el mismo viaje. Para una app que cobra es un problema serio: dos pasajeros que piden el mismo viaje recibirían precios distintos, y no se puede auditar ni reproducir una tarifa cobrada.
+No. Pegué el mismo `prompt_llm.txt` en cuatro conversaciones nuevas, cada una con un LLM distinto, y guardé sus respuestas en `starter/respuestas_llm_<modelo>.txt`. Comparadas con la primera corrida (Claude Opus 5.5, error medio 1.16), Claude Sonnet 5.5 cambió 15 de los 20 números (error 0.92), Gemini 17 (error 1.14), GPT 17 (error 0.95) y Claude Haiku 5.5 18 (error 3.60). Las diferencias fueron de hasta 2.9 dólares en el mismo viaje, y Haiku llegó a 30: a un viaje de tarifa fija de 70 dólares le puso 100, y a uno de 14.01 le puso 34. Para una app que cobra es un problema serio: dos pasajeros que piden el mismo viaje recibirían precios distintos según el modelo o la conversación, y no se puede auditar ni reproducir una tarifa cobrada. El gradient boosting, en cambio, da siempre el mismo número para la misma entrada.
 
 **Respuesta 3:** busca en tus 20 respuestas la peor predicción del LLM. ¿Qué tiene de particular ese viaje? ¿Lo habría aprendido el ensamblaje con las 2380 filas de entrenamiento?
 
@@ -116,11 +116,14 @@ El notebook es [`psets/proyecto/modelado/comparar_proyecto.ipynb`](../../psets/p
 
 | Opción | AUC en prueba | Exactitud en los 10 pares | Entrenamiento | Costo de 10 000 pares | Explicabilidad |
 |---|---|---|---|---|---|
-| ⟨mejor ensamblaje⟩ | ⟨X⟩ | ⟨X⟩ | ⟨X⟩ s | ~0 | Importancia de columnas |
-| Red neuronal (64 neuronas, ⟨X⟩ parámetros) | ⟨X⟩ | ⟨X⟩ | ⟨X⟩ s | ~0 | No |
-| LLM (⟨modelo⟩) | — | ⟨X⟩ | — | ⟨X⟩ dólares | Texto, sin garantía |
+| Gradient boosting (el mejor ensamblaje de la 10.1) | 0.902 | 0.9 | 1.3 s | ~0 | Importancia de columnas |
+| Red neuronal (64 neuronas, 2 177 parámetros) | 0.892 | 0.9 | 3.7 s | ~0 | No |
+| LLM (Claude Sonnet 5.5) | — | 1.0 | — | ~3.4 dólares | Texto, sin garantía |
+| LLM (Gemini) | — | 0.8 | — | ~3.4 dólares | Texto, sin garantía |
+| LLM (GPT) | — | 0.6 | — | ~3.4 dólares | Texto, sin garantía |
+| LLM (Claude Haiku 5.5) | — | 0.3 | — | ~3.4 dólares | Texto, sin garantía |
 
-Usaría el ensamblaje. ⟨Ajustar con los números reales:⟩ su AUC en prueba (⟨X⟩) es igual o mejor que la de la red (⟨X⟩), entrena ⟨X⟩ veces más rápido y sus importancias muestran qué pesa en cada recomendación: `mismo_campo` y `funder_en_pais_autor` arriba, que es justo lo que un investigador querría saber de por qué se le recomienda un award. El LLM no conviene como clasificador: acertó ⟨X⟩ de 10, cuesta ⟨X⟩ dólares por cada 10 000 pares (y GrantMatch tiene que evaluar millones de combinaciones investigador–award), no da el mismo resultado dos veces y manda los datos fuera. Donde sí tendría sentido un LLM es en el texto (resúmenes y descripciones de awards), que el ensamblaje no usa.
+Usaría el ensamblaje. Su AUC en prueba (0.902) es mejor que la de la red (0.892), entrena unas 3 veces más rápido (1.3 s contra 3.7 s) y sus importancias muestran qué pesa en cada recomendación: `funder_en_pais_autor` (0.79) muy arriba, y después `amount_usd`, `authors_count` y `mismo_campo`, que es lo que un investigador querría saber de por qué se le recomienda un award. En los 10 pares, el ensamblaje y la red aciertan 9. Pasé el mismo prompt a cuatro LLM, cada uno en una conversación nueva: Claude Sonnet 5.5 acertó 10 de 10, Gemini 8, GPT 6 y Claude Haiku 5.5 solo 3, peor que tirar una moneda. Con 10 pares el 10 de 10 de Sonnet no se distingue del 9 del ensamblaje, y la dispersión entre LLM (de 3 a 10 con el mismo prompt) muestra lo poco confiable que es como clasificador. Además cuesta unos 3.4 dólares por cada 10 000 pares (con 4 dólares por millón de tokens de entrada; GrantMatch tiene que evaluar millones de combinaciones investigador–award), no da una probabilidad para ordenar recomendaciones, no garantiza el mismo resultado dos veces y manda los datos fuera. Donde sí tendría sentido un LLM es en el texto (resúmenes y descripciones de awards), que el ensamblaje no usa.
 
 ## Antes de la próxima sesión
 
