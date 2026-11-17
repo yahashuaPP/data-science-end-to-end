@@ -131,7 +131,7 @@ El archivo [`.github/workflows/pruebas.yml`](../../.github/workflows/pruebas.yml
 
 **Pega el enlace a la ejecución de GitHub Actions donde pasan tus pruebas:**
 
-_(tu respuesta)_
+https://github.com/yahashuaPP/data-science-end-to-end/actions/runs/44113132431/job/134143841545 (corrida #6, "semana 13 y 14 - llm proyecto": el paso "Correr las pruebas de psets/proyecto" termina en verde con las 22 pruebas del pipeline, el servicio y el monitoreo).
 
 **¿Qué patrón elegiste para tu proyecto, y qué número de latencia lo decide?**
 
@@ -139,7 +139,7 @@ Por lotes, una vez por noche, después de que el pipeline de datos actualiza la 
 
 **Rompe a propósito una de tus pruebas (cambia un valor esperado), haz push y mira qué pasa en GitHub. Después arréglala. ¿Qué te dijo GitHub, y dónde lo viste?**
 
-_(tu respuesta)_
+Cambié el valor esperado de `test_mismo_campo_calculado_a_mano` de `[1, 0, 0]` a `[1, 1, 0]` e hice push. En la pestaña **Actions** la corrida salió con una X roja (la misma X aparece junto al commit en la pestaña Code, y GitHub avisa por correo que la corrida falló; el commit es "rompiendo prueba a proposito"). Dentro del job `pytest`, el paso "Correr las pruebas de psets/proyecto" decía `FAILED psets/proyecto/modelado/test_pipeline_proyecto.py::test_mismo_campo_calculado_a_mano - assert [1, 0, 0] == [1, 1, 0]`, con el detalle `At index 1 diff: 0 != 1`, el resumen `1 failed, 21 passed in 1.78s` y `Error: Process completed with exit code 1`. Es decir, GitHub corrió todas las pruebas, dijo exactamente cuál falló, en qué posición y con qué valores, y marcó el commit como roto. Volví a poner `[1, 0, 0]` (commit "arreglando error"), hice push y la corrida volvió a verde.
 
 ## Antes de la próxima sesión
 
